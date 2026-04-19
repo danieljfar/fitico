@@ -1,34 +1,80 @@
-# Fitness Flow - High Concurrency Reservation Engine
+# Fitness Flow
 
-Sistema integral de gestión de reservas diseñado para entornos de alta demanda. Este motor de reservas prioriza la consistencia de datos, la escalabilidad mediante contenedores y el manejo de concurrencia masiva.
+Prueba técnica de reservas con arquitectura moderna, Node.js v24.x, MySQL y una interfaz React para demostrar autenticación, transacciones y actualización en tiempo real.
 
-## Visión del Proyecto
-El objetivo es resolver el desafío técnico de permitir que múltiples usuarios intenten reservar cupos limitados simultáneamente. El sistema garantiza que nunca se exceda la capacidad disponible y que cada transacción se procese de forma atómica y segura.
+## Arquitectura
+El repo usa un monolito modular en backend y una SPA ligera en frontend.
 
-## Arquitectura del Sistema
-El proyecto está completamente Dockerizado para garantizar un entorno de desarrollo consistente y facilitar el despliegue:
+* `backend/`: API en Node.js ESM con Express, Sequelize, JWT, Socket.IO y MySQL.
+* `frontend/`: UI en React con Vite para reservar cupos y ver cambios en vivo.
+* `docker-compose.yml`: orquesta MySQL, backend y frontend para levantar la demo local.
 
-* **Frontend**: Aplicación cliente (React) contenida en un entorno aislado.
-* **Backend**: API REST construida con Node.js, encargada de la lógica de negocio y transacciones.
-* **Database**: Instancia de MySQL optimizada para persistencia de datos relacionales.
+## Librerías destacadas
+Estas son las librerías de la lista que tienen código propio en el proyecto:
 
-## Stack Tecnológico & Librerías
-Se han implementado librerías clave para demostrar un dominio avanzado del ecosistema JavaScript y bases de datos:
+* `express`: API HTTP y rutas.
+* `sequelize`: modelo relacional, transacciones y locks de fila.
+* `jsonwebtoken`: autenticación JWT.
+* `socket.io`: eventos `slot_updated` en tiempo real.
+* `moment`: formateo de horarios y semillas de demo.
+* `react`: UI principal.
+* `react-dom`: render del frontend.
+* `socket.io-client`: suscripción a eventos realtime.
+* `react-hot-toast`: feedback UX.
+* `react-icons`: iconografía de la interfaz.
+* `react-bootstrap` y `bootstrap`: layout y componentes.
 
-1. **`express`**: Framework para la construcción de la API.
-2. [cite_start]**`sequelize`**: ORM para gestionar la persistencia en MySQL e implementar transacciones ACID[cite: 130, 136, 141].
-3. [cite_start]**`jsonwebtoken`**: Estándar para la protección de rutas y gestión de sesiones de usuario[cite: 128].
-4. [cite_start]**`socket.io`**: Comunicación bidireccional en tiempo real para actualizaciones de disponibilidad[cite: 139].
-5. [cite_start]**`moment`**: Manejo preciso de tiempos, validaciones de horarios y expiración de cupos[cite: 209].
+## Funcionalidad
+* Registro e inicio de sesión con JWT.
+* Listado de cupos con capacidad y disponibilidad.
+* Reserva y cancelación atómica con transacción de base de datos.
+* Bloqueo pesimista para evitar sobreventa.
+* Actualización en tiempo real cuando cambia la ocupación.
 
-## Desafíos Técnicos Resueltos
-* **Gestión de Concurrencia (Race Conditions)**: Implementación de bloqueos a nivel de fila (`FOR UPDATE`) para evitar el overbooking.
-* **Transacciones Atómicas**: Uso de transacciones de base de datos para asegurar que la asignación de cupos y registros asociados ocurran como una unidad indivisible.
-* **Infraestructura como Código**: Orquestación de servicios mediante Docker Compose.
+## Requisitos
+* Node.js v24.x LTS o v25 current.
+* Docker y Docker Compose.
+* MySQL disponible vía Docker o local.
 
-## Instalación y Despliegue con Docker
-El único requisito previo es tener instalado **Docker** y **Docker Compose**.
+## Variables de entorno
+Copia los archivos de ejemplo y ajusta valores si es necesario.
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone <url-del-repo>
+* [`.env.example`](.env.example)
+* [`backend/.env.example`](backend/.env.example)
+* [`frontend/.env.example`](frontend/.env.example)
+
+## Ejecutar localmente
+Backend:
+
+```bash
+cd backend
+npm install
+npm start
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Docker:
+
+```bash
+docker compose up -d --build
+```
+
+La UI queda en `http://localhost:5173` y la API en `http://localhost:4000`.
+
+## API
+* `GET /health`
+* `POST /api/auth/register`
+* `POST /api/auth/login`
+* `GET /api/slots`
+* `POST /api/reservations`
+* `DELETE /api/reservations/:id`
+
+## Presentación
+La demo local muestra un dashboard con cupos semilla, login/register, reserva/cancelación y refresco realtime sin recargar la página.

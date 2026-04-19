@@ -4,31 +4,52 @@ services:
     container_name: fitness-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-fitness_flow}
     ports:
-      - "${DB_PORT}:3306"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - db_data:/var/lib/mysql
     networks:
       - fitness-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   backend:
     build: ./backend
     container_name: fitness-backend
     restart: on-failure
     ports:
-      - "${PORT}:${PORT}"
+      - "${PORT:-4000}:${PORT:-4000}"
     environment:
       - DB_HOST=db
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root_password}
+      - DB_NAME=${DB_NAME:-fitness_flow}
       - DB_PORT=3306
-      - PORT=${PORT}
-      - JWT_SECRET=${JWT_SECRET}
+      - PORT=${PORT:-4000}
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - fitness-network
+
+  frontend:
+    build: ./frontend
+    container_name: fitness-frontend
+    restart: on-failure
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:4000/api
+      - VITE_SOCKET_URL=http://localhost:4000
+    depends_on:
+      - backend
     networks:
       - fitness-network
 
