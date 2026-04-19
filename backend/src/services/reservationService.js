@@ -1,24 +1,25 @@
 import { sequelize } from '../database/index.js';
 import { emitSocketEvent } from '../config/socket.js';
 import { ApiError } from '../utils/apiError.js';
-import { createReservation, findActiveReservation, findReservationById, findUserReservations } from '../repositories/reservationRepository.js';
+import { createBooking, findActiveBooking, findBookingById, findUserBookings } from '../repositories/reservationRepository.js';
 import { findSlotById } from '../repositories/slotRepository.js';
 
-function serializeReservation(reservation) {
+function serializeBooking(booking) {
   return {
-    id: reservation.id,
-    status: reservation.status,
-    userId: reservation.userId,
-    slotId: reservation.slotId,
-    createdAt: reservation.createdAt,
-    updatedAt: reservation.updatedAt,
-    slot: reservation.slot
+    id: booking.id,
+    status: booking.status,
+    userId: booking.userId,
+    slotId: booking.slotId,
+    externalBookingId: booking.externalBookingId,
+    createdAt: booking.createdAt,
+    updatedAt: booking.updatedAt,
+    slot: booking.slot
       ? {
-          id: reservation.slot.id,
-          title: reservation.slot.title,
-          startsAt: reservation.slot.startsAt,
-          capacity: reservation.slot.capacity,
-          bookedCount: reservation.slot.bookedCount,
+          id: booking.slot.id,
+          title: booking.slot.title,
+          startsAt: booking.slot.startsAt,
+          capacity: booking.slot.capacity,
+          bookedCount: booking.slot.bookedCount,
         }
       : null,
   };
@@ -34,10 +35,10 @@ export async function reserveSlot(userId, slotId) {
       throw new ApiError(404, 'Slot not found');
     }
 
-    const activeReservation = await findActiveReservation(userId, slotId, transaction);
+    const activeBooking = await findActiveBooking(userId, slotId, transaction);
 
-    if (activeReservation) {
-      throw new ApiError(409, 'You already reserved this slot');
+    if (activeBooking) {
+      throw new ApiError(409, 'You already have an active booking for this slot');
     }
 
     if (slot.bookedCount >= slot.capacity) {
@@ -47,7 +48,7 @@ export async function reserveSlot(userId, slotId) {
     slot.bookedCount += 1;
     await slot.save({ transaction });
 
-    const reservation = await createReservation(
+    const booking = await createBooking(
       {
         userId,
         slotId,
@@ -64,8 +65,8 @@ export async function reserveSlot(userId, slotId) {
       capacity: slot.capacity,
     });
 
-    return serializeReservation({
-      ...reservation.toJSON(),
+    return serializeBooking({
+      ...booking.toJSON(),
       slot: slot.toJSON(),
     });
   } catch (error) {
@@ -78,24 +79,24 @@ export async function cancelReservation(userId, reservationId) {
   const transaction = await sequelize.transaction();
 
   try {
-    const reservation = await findReservationById(reservationId, transaction);
+    const booking = await findBookingById(reservationId, transaction);
 
-    if (!reservation) {
-      throw new ApiError(404, 'Reservation not found');
+    if (!booking) {
+      throw new ApiError(404, 'Booking not found');
     }
 
-    if (reservation.userId !== userId) {
-      throw new ApiError(403, 'You cannot cancel this reservation');
+    if (booking.userId !== userId) {
+      throw new ApiError(403, 'You cannot cancel this booking');
     }
 
-    if (reservation.status === 'cancelled') {
-      throw new ApiError(409, 'Reservation was already cancelled');
+    if (booking.status === 'cancelled') {
+      throw new ApiError(409, 'Booking was already cancelled');
     }
 
-    const slot = await findSlotById(reservation.slotId, transaction);
+    const slot = await findSlotById(booking.slotId, transaction);
 
-    reservation.status = 'cancelled';
-    await reservation.save({ transaction });
+    booking.status = 'cancelled';
+    await booking.save({ transaction });
 
     if (slot && slot.bookedCount > 0) {
       slot.bookedCount -= 1;
@@ -112,9 +113,9 @@ export async function cancelReservation(userId, reservationId) {
       });
     }
 
-    return serializeReservation({
-      ...reservation.toJSON(),
-      slot: slot ? slot.toJSON() : reservation.slot,
+    return serializeBooking({
+      ...booking.toJSON(),
+      slot: slot ? slot.toJSON() : booking.slot,
     });
   } catch (error) {
     await transaction.rollback();
@@ -123,6 +124,8 @@ export async function cancelReservation(userId, reservationId) {
 }
 
 export async function listReservations(userId) {
-  const reservations = await findUserReservations(userId);
-  return reservations.map(serializeReservation);
+  const bookings = await findUserBookings(userId);
+  return bookings.map(serializeBooking);
 }
+
+export const listBookings = listReservations;

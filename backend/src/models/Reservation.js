@@ -1,13 +1,17 @@
 import { DataTypes } from 'sequelize';
 
-export function defineReservationModel(sequelize) {
+export function defineBookingModel(sequelize) {
   return sequelize.define(
-    'Reservation',
+    'Booking',
     {
       id: {
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
+      },
+      externalBookingId: {
+        type: DataTypes.STRING(64),
+        allowNull: true,
       },
       status: {
         type: DataTypes.ENUM('active', 'cancelled'),
@@ -16,7 +20,7 @@ export function defineReservationModel(sequelize) {
       },
     },
     {
-      tableName: 'reservations',
+      tableName: 'bookings',
     }
   );
 }

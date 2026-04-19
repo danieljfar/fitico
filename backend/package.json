@@ -7,8 +7,9 @@
     "node": ">=24 <26"
   },
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node --watch src/app.js"
+    "migrate": "node src/database/migrate.js",
+    "start": "npm run migrate && node src/app.js",
+    "dev": "npm run migrate && node --watch src/app.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

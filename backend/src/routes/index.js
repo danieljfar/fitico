@@ -7,6 +7,7 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/slots', slotRoutes);
+router.use('/bookings', reservationRoutes);
 router.use('/reservations', reservationRoutes);
 
 export default router;
