@@ -27,10 +27,14 @@ import { Dashboard } from './pages/admin/Dashboard.jsx';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
 
+function countryCodeToFlag(code) {
+  return String.fromCodePoint(...code.split('').map((x) => 127397 + x.charCodeAt()));
+}
+
 const COUNTRY_OPTIONS = [
-  { code: 'CO', locale: 'es-CO', lang: 'es', labelKey: 'countryColombia' },
-  { code: 'MX', locale: 'es-MX', lang: 'es', labelKey: 'countryMexico' },
-  { code: 'US', locale: 'en-US', lang: 'en', labelKey: 'countryUnitedStates' },
+  { code: 'CO', locale: 'es-CO', lang: 'es', labelKey: 'countryColombia', flag: countryCodeToFlag('CO') },
+  { code: 'MX', locale: 'es-MX', lang: 'es', labelKey: 'countryMexico', flag: countryCodeToFlag('MX') },
+  { code: 'US', locale: 'en-US', lang: 'en', labelKey: 'countryUnitedStates', flag: countryCodeToFlag('US') },
 ];
 
 const emptyForm = {

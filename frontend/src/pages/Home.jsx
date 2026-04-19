@@ -46,7 +46,7 @@ export function Home({
 								aria-label={t('country')}
 								aria-expanded={isCountrySelectorOpen}
 							>
-								<FiGlobe aria-hidden="true" />
+								<span className="country-flag">{selectedCountry.flag}</span>
 								<span>{t(selectedCountry.labelKey)}</span>
 							</Button>
 
@@ -58,7 +58,8 @@ export function Home({
 										className="country-menu-item"
 										onClick={() => onSelectCountry(option.code)}
 									>
-										{t(option.labelKey)}
+										<span className="country-flag">{option.flag}</span>
+										<span>{t(option.labelKey)}</span>
 									</Button>
 								))}
 							</div>
