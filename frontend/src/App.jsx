@@ -60,6 +60,7 @@ export function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isCountrySelectorOpen, setIsCountrySelectorOpen] = useState(false);
   const [adminViewMode, setAdminViewMode] = useState('client');
+  const [clientViewSection, setClientViewSection] = useState('home');
   const [country, setCountry] = useState(getCountryFromStorage);
   const [form, setForm] = useState(emptyAuthForm);
   const [token, setToken] = useState(() => localStorage.getItem('fitico-token') || '');
@@ -181,8 +182,13 @@ export function App() {
         }
 
         if (token) {
-          const reservationsPayload = await apiMyReservations(token);
+          const [userPayload, reservationsPayload] = await Promise.all([
+            apiMe(token),
+            apiMyReservations(token),
+          ]);
+
           if (active) {
+            setUser(userPayload.user || null);
             setReservations(reservationsPayload.reservations || []);
           }
         }
@@ -243,11 +249,33 @@ export function App() {
     setReservations(reservationsPayload.reservations || []);
   }
 
+  async function refreshAuthenticatedUserData(currentToken = token) {
+    if (!currentToken) {
+      setUser(null);
+      setReservations([]);
+      return;
+    }
+
+    const [userPayload, reservationsPayload] = await Promise.all([
+      apiMe(currentToken),
+      apiMyReservations(currentToken),
+    ]);
+
+    setUser(userPayload.user || null);
+    setReservations(reservationsPayload.reservations || []);
+  }
+
   useEffect(() => {
     if (user?.role !== 'admin') {
       setAdminViewMode('client');
     }
   }, [user?.role]);
+
+  useEffect(() => {
+    if (!token) {
+      setClientViewSection('home');
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!token || user?.role !== 'admin' || adminViewMode !== 'admin') {
@@ -307,6 +335,48 @@ export function App() {
     setAdminClassSessions(classSessionsPayload.classes || []);
   }
 
+  async function refreshCreditsData(selectedUserId = selectedCreditUser?.id) {
+    if (!token || user?.role !== 'admin' || adminViewMode !== 'admin') {
+      return;
+    }
+
+    const query = creditsQuery.trim();
+
+    if (query.length < 2) {
+      return;
+    }
+
+    setCreditsLoading(true);
+    try {
+      const payload = await apiAdminSearchUsers(token, query);
+      const users = payload.users || [];
+      setCreditUsers(users);
+
+      if (selectedUserId) {
+        const updatedSelected = users.find((userItem) => userItem.id === selectedUserId) || null;
+        setSelectedCreditUser(updatedSelected);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setCreditsLoading(false);
+    }
+  }
+
+  async function refreshAfterAdminMutation({ refreshPublic = true, refreshCredits = false, selectedUserId = null } = {}) {
+    const refreshTasks = [refreshAdminData()];
+
+    if (refreshPublic) {
+      refreshTasks.push(refreshPublicData());
+    }
+
+    await Promise.all(refreshTasks);
+
+    if (refreshCredits) {
+      await refreshCreditsData(selectedUserId);
+    }
+  }
+
   async function loadClassReservations(classId) {
     const payload = await apiAdminClassReservations(token, classId);
     setClassReservationsByClass((current) => ({
@@ -352,8 +422,7 @@ export function App() {
     try {
       await apiCreateReservation(token, classId);
       toast.success(t('reservationCreated'));
-      const reservationsPayload = await apiMyReservations(token);
-      setReservations(reservationsPayload.reservations || []);
+      await refreshAuthenticatedUserData(token);
     } catch (error) {
       toast.error(error.message);
     }
@@ -363,8 +432,7 @@ export function App() {
     try {
       await apiCancelReservation(token, reservationId);
       toast.success(t('reservationCancelled'));
-      const reservationsPayload = await apiMyReservations(token);
-      setReservations(reservationsPayload.reservations || []);
+      await refreshAuthenticatedUserData(token);
     } catch (error) {
       toast.error(error.message);
     }
@@ -416,7 +484,7 @@ export function App() {
       }
 
       closeAdminModal();
-      await refreshAdminData();
+      await refreshAfterAdminMutation({ refreshPublic: true });
       toast.success(adminModalState.mode === 'edit' ? t('saveChanges') : t('instructorCreated'));
     } catch (error) {
       toast.error(error.message);
@@ -440,8 +508,7 @@ export function App() {
       }
 
       closeAdminModal();
-      await refreshAdminData();
-      await refreshPublicData();
+      await refreshAfterAdminMutation({ refreshPublic: true });
       toast.success(adminModalState.mode === 'edit' ? t('saveChanges') : t('classCreated'));
     } catch (error) {
       toast.error(error.message);
@@ -451,7 +518,7 @@ export function App() {
   async function handleDeleteInstructor(instructor) {
     try {
       await apiAdminDeleteInstructor(token, instructor.id);
-      await refreshAdminData();
+      await refreshAfterAdminMutation({ refreshPublic: true });
       toast.success(t('instructorDeleted'));
     } catch (error) {
       toast.error(error.message);
@@ -461,8 +528,7 @@ export function App() {
   async function handleDeleteClass(classItem) {
     try {
       await apiAdminDeleteClass(token, classItem.id);
-      await refreshAdminData();
-      await refreshPublicData();
+      await refreshAfterAdminMutation({ refreshPublic: true });
       setExpandedClassId((current) => (current === classItem.id ? null : current));
       toast.success(t('classDeleted'));
     } catch (error) {
@@ -493,8 +559,14 @@ export function App() {
 
   async function handleDeleteReservation(reservation) {
     try {
+      const classId = reservation.classId || reservation.class?.id || expandedClassId;
       await apiAdminDeleteReservation(token, reservation.id);
-      await loadClassReservations(reservation.classId || reservation.class?.id || expandedClassId);
+      await refreshAfterAdminMutation({ refreshPublic: true });
+
+      if (classId) {
+        await loadClassReservations(classId);
+      }
+
       toast.success(t('reservationDeleted'));
     } catch (error) {
       toast.error(error.message);
@@ -510,6 +582,7 @@ export function App() {
 
     try {
       await apiAdminCreateReservation(token, classItem.id, reservationModalState.selectedUser.id);
+      await refreshAfterAdminMutation({ refreshPublic: true });
       await loadClassReservations(classItem.id);
       closeReservationModal();
       toast.success(t('reservationCreatedForUser'));
@@ -531,6 +604,8 @@ export function App() {
         setSelectedCreditUser(updatedUser);
         setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
       }
+
+      await refreshAfterAdminMutation({ refreshPublic: false, refreshCredits: true, selectedUserId: updatedUser?.id });
 
       toast.success(t('creditsAssigned'));
     } catch (error) {
@@ -555,6 +630,8 @@ export function App() {
         setSelectedCreditUser(updatedUser);
         setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
       }
+
+      await refreshAfterAdminMutation({ refreshPublic: false, refreshCredits: true, selectedUserId: updatedUser?.id });
 
       toast.success(t('creditsUpdated'));
     } catch (error) {
@@ -587,6 +664,8 @@ export function App() {
         setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
       }
 
+      await refreshAfterAdminMutation({ refreshPublic: false, refreshCredits: true, selectedUserId: updatedUser?.id });
+
       toast.success(t('creditsUpdated'));
     } catch (error) {
       toast.error(error.message);
@@ -610,6 +689,8 @@ export function App() {
         setSelectedCreditUser(updatedUser);
         setCreditUsers((current) => current.map((userItem) => (userItem.id === updatedUser.id ? updatedUser : userItem)));
       }
+
+      await refreshAfterAdminMutation({ refreshPublic: false, refreshCredits: true, selectedUserId: updatedUser?.id });
 
       toast.success(t('creditsDeleted'));
     } catch (error) {
@@ -654,6 +735,7 @@ export function App() {
     setToken('');
     setUser(null);
     setAdminViewMode('client');
+    setClientViewSection('home');
     setAdminModalState(emptyAdminModalState);
     setReservationModalState(emptyReservationModalState);
     setReservations([]);
@@ -674,7 +756,6 @@ export function App() {
   const totalSeats = classes.reduce((sum, classSession) => sum + classSession.availableSeats, 0);
   const totalReservations = reservations.length;
   const liveClasses = classes.filter((classSession) => classSession.availableSeats > 0).length;
-  const featuredClasses = classes.slice(0, 3);
   const instructors = useMemo(() => {
     const byInstructor = new Map();
 
@@ -751,6 +832,8 @@ export function App() {
           isAdmin={user?.role === 'admin'}
           adminViewMode={adminViewMode}
           onToggleAdminViewMode={() => setAdminViewMode((current) => (current === 'admin' ? 'client' : 'admin'))}
+          clientViewSection={clientViewSection}
+          onSelectClientViewSection={setClientViewSection}
           onOpenAuthModal={() => setShowAuthModal(true)}
           onLogout={logout}
         />
@@ -797,11 +880,11 @@ export function App() {
             liveClasses={liveClasses}
             totalReservations={totalReservations}
             booting={booting}
-            featuredClasses={featuredClasses}
             highlightedInstructors={highlightedInstructors}
             instructors={instructors}
             formatDateTime={formatDateTime}
             token={token}
+            clientViewSection={clientViewSection}
             onReserve={handleReserve}
             onCancel={handleCancel}
             onOpenAuthModal={() => setShowAuthModal(true)}

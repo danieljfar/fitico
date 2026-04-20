@@ -15,11 +15,11 @@ export function ClientView({
   liveClasses,
   totalReservations,
   booting,
-  featuredClasses,
   highlightedInstructors,
   instructors,
   formatDateTime,
   token,
+  clientViewSection,
   onReserve,
   onCancel,
   onOpenAuthModal,
@@ -79,6 +79,20 @@ export function ClientView({
     );
   }
 
+  if (clientViewSection === 'profile') {
+    return (
+      <Profile
+        t={t}
+        user={user}
+        token={token}
+        reservations={reservations}
+        formatDateTime={formatDateTime}
+        onOpenAuthModal={onOpenAuthModal}
+        onCancel={onCancel}
+      />
+    );
+  }
+
   return (
     <>
       <Home
@@ -88,23 +102,13 @@ export function ClientView({
         liveClasses={liveClasses}
         totalReservations={totalReservations}
         booting={booting}
-        featuredClasses={featuredClasses}
         highlightedInstructors={highlightedInstructors}
-        formatDateTime={formatDateTime}
         onSelectInstructor={handleSelectInstructor}
         onViewAllInstructors={handleOpenAllInstructors}
       />
 
       <Row className="g-4 client-content-grid">
         <Classes t={t} classes={classes} reservations={reservations} formatDateTime={formatDateTime} onReserve={onReserve} />
-        <Profile
-          t={t}
-          token={token}
-          reservations={reservations}
-          formatDateTime={formatDateTime}
-          onOpenAuthModal={onOpenAuthModal}
-          onCancel={onCancel}
-        />
       </Row>
     </>
   );

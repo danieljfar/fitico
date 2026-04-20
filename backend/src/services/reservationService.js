@@ -20,7 +20,6 @@ function serializeBooking(booking) {
     status: booking.status,
     userId: booking.userId,
     classId: booking.classId,
-    externalBookingId: booking.externalBookingId,
     createdBy: booking.createdBy,
     updatedBy: booking.updatedBy,
     createdAt: booking.createdAt,

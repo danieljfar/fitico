@@ -82,7 +82,6 @@ function serializeReservation(reservation) {
     status: reservation.status,
     userId: reservation.userId,
     classId: reservation.classId,
-    externalBookingId: reservation.externalBookingId,
     createdBy: reservation.createdBy,
     updatedBy: reservation.updatedBy,
     createdAt: reservation.createdAt,

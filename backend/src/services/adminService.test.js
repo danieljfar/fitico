@@ -75,7 +75,6 @@ describe('adminService', () => {
           status: 'active',
           userId: 7,
           classId: 3,
-          externalBookingId: null,
           createdBy: 1,
           updatedBy: 1,
           createdAt: new Date('2026-04-19T10:00:00.000Z'),

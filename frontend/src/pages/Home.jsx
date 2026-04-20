@@ -8,9 +8,7 @@ export function Home({
 	liveClasses,
 	totalReservations,
 	booting,
-	featuredClasses,
 	highlightedInstructors,
-	formatDateTime,
 	onSelectInstructor,
 	onViewAllInstructors,
 }) {
@@ -65,36 +63,7 @@ export function Home({
 			</Row>
 
 			<Row className="g-4">
-				<Col lg={8}>
-					<Card className="panel-card border-0 customer-classes-card h-100">
-						<Card.Body className="p-4">
-							<div className="section-heading mb-1">{t('sessionClasses')}</div>
-							<div className="class-meta mb-3">{t('homeClassesSubtitle')}</div>
-							<div className="featured-class-grid">
-								{featuredClasses.length === 0 ? (
-									<div className="empty-state">{t('noClassesYet')}</div>
-								) : (
-									featuredClasses.map((classSession) => (
-										<div key={classSession.id} className="featured-class-card customer-featured-card">
-											<div className="class-title mb-1">{classSession.class?.name || classSession.title}</div>
-											<div className="class-meta mb-2">
-												{classSession.startsAt ? formatDateTime(classSession.startsAt) : t('scheduled')}
-											</div>
-											<div className="d-flex justify-content-between class-meta gap-2 align-items-center">
-												<span>{classSession.class?.instructor?.name || t('coachAssignedSoon')}</span>
-												<span>
-													{classSession.availableSeats} {t('seatsLeft')}
-												</span>
-											</div>
-										</div>
-									))
-								)}
-							</div>
-						</Card.Body>
-					</Card>
-				</Col>
-
-				<Col lg={4}>
+				<Col lg={12}>
 					<Card className="panel-card border-0 customer-instructors-card h-100">
 						<Card.Body className="p-4">
 							<div className="section-heading mb-1">{t('featuredInstructors')}</div>

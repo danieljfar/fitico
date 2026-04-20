@@ -11,9 +11,13 @@ export function AppTopBar({
   isAdmin,
   adminViewMode,
   onToggleAdminViewMode,
+  clientViewSection,
+  onSelectClientViewSection,
   onOpenAuthModal,
   onLogout,
 }) {
+  const canShowProfileButton = Boolean(user) && (!isAdmin || adminViewMode === 'client');
+
   return (
     <Row className="mb-4">
       <Col>
@@ -58,6 +62,16 @@ export function AppTopBar({
 
             {user ? (
               <>
+                {canShowProfileButton ? (
+                  <Button
+                    variant={clientViewSection === 'profile' ? 'dark' : 'outline-dark'}
+                    size="sm"
+                    className="rounded-pill"
+                    onClick={() => onSelectClientViewSection(clientViewSection === 'profile' ? 'home' : 'profile')}
+                  >
+                    {t('profileSection')}
+                  </Button>
+                ) : null}
                 <span className="welcome-line">
                   {t('signedAs')} {user.name}
                 </span>

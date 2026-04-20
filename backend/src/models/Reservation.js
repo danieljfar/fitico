@@ -9,10 +9,6 @@ export function defineBookingModel(sequelize) {
         autoIncrement: true,
         primaryKey: true,
       },
-      externalBookingId: {
-        type: DataTypes.STRING(64),
-        allowNull: true,
-      },
       status: {
         type: DataTypes.ENUM('active', 'cancelled'),
         allowNull: false,
