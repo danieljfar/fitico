@@ -36,6 +36,7 @@ import {
   apiCancelReservation,
   apiCreateReservation,
   apiClasses,
+  apiFeaturedInstructors,
   apiLogin,
   apiMe,
   apiMyReservations,
@@ -64,6 +65,7 @@ export function App() {
   const [token, setToken] = useState(() => localStorage.getItem('fitico-token') || '');
   const [user, setUser] = useState(null);
   const [classes, setClasses] = useState([]);
+  const [featuredInstructorsByOccupancy, setFeaturedInstructorsByOccupancy] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [booting, setBooting] = useState(true);
@@ -120,9 +122,10 @@ export function App() {
 
     async function loadBaseData(currentToken) {
       try {
-        const [classesPayload, reservationsPayload] = await Promise.all([
+        const [classesPayload, reservationsPayload, featuredInstructorsPayload] = await Promise.all([
           apiClasses(),
           currentToken ? apiMyReservations(currentToken) : Promise.resolve({ reservations: [] }),
+          apiFeaturedInstructors(4),
         ]);
 
         if (!active) {
@@ -130,6 +133,7 @@ export function App() {
         }
 
         setClasses(classesPayload.classes || []);
+        setFeaturedInstructorsByOccupancy(featuredInstructorsPayload.instructors || []);
         setReservations(reservationsPayload.reservations || []);
       } catch (error) {
         toast.error(error.message);
@@ -170,8 +174,10 @@ export function App() {
     socket.on('slot_updated', async () => {
       try {
         const classesPayload = await apiClasses();
+        const featuredInstructorsPayload = await apiFeaturedInstructors(4);
         if (active) {
           setClasses(classesPayload.classes || []);
+          setFeaturedInstructorsByOccupancy(featuredInstructorsPayload.instructors || []);
         }
 
         if (token) {
@@ -226,12 +232,14 @@ export function App() {
   }, [token, user?.role]);
 
   async function refreshPublicData(currentToken = token) {
-    const [classesPayload, reservationsPayload] = await Promise.all([
+      const [classesPayload, reservationsPayload, featuredInstructorsPayload] = await Promise.all([
       apiClasses(),
       currentToken ? apiMyReservations(currentToken) : Promise.resolve({ reservations: [] }),
+        apiFeaturedInstructors(4),
     ]);
 
     setClasses(classesPayload.classes || []);
+      setFeaturedInstructorsByOccupancy(featuredInstructorsPayload.instructors || []);
     setReservations(reservationsPayload.reservations || []);
   }
 
@@ -712,10 +720,19 @@ export function App() {
             ? Math.round((instructor.totalBooked / instructor.totalCapacity) * 100)
             : 0,
       }))
-      .sort((a, b) => b.sessions.length - a.sessions.length);
+      .sort((a, b) => {
+        if (b.occupancyRate !== a.occupancyRate) {
+          return b.occupancyRate - a.occupancyRate;
+        }
+
+        return b.totalBooked - a.totalBooked;
+      });
   }, [classes, t]);
 
-  const highlightedInstructors = instructors.slice(0, 4);
+  const highlightedInstructors =
+    featuredInstructorsByOccupancy.length > 0
+      ? featuredInstructorsByOccupancy.slice(0, 4)
+      : instructors.slice(0, 4);
 
   return (
     <div className="page-shell">

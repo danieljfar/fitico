@@ -9,7 +9,9 @@
   "scripts": {
     "migrate": "node src/database/migrate.js",
     "start": "npm run migrate && node src/app.js",
-    "dev": "npm run migrate && node --watch src/app.js"
+    "dev": "npm run migrate && node --watch src/app.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
@@ -24,5 +26,8 @@
     "sequelize": "^6.37.3",
     "socket.io": "^4.7.5",
     "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.4"
   }
 }

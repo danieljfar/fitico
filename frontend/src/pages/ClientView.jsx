@@ -4,6 +4,7 @@ import { Home } from './Home.jsx';
 import { Classes } from './Classes.jsx';
 import { Profile } from './Profile.jsx';
 import { InstructorProfile } from './InstructorProfile.jsx';
+import { Instructors } from './Instructors.jsx';
 
 export function ClientView({
   t,
@@ -24,6 +25,7 @@ export function ClientView({
   onOpenAuthModal,
 }) {
   const [selectedInstructorId, setSelectedInstructorId] = useState(null);
+  const [showAllInstructors, setShowAllInstructors] = useState(false);
 
   const selectedInstructor = useMemo(
     () => instructors.find((instructor) => instructor.id === selectedInstructorId) || null,
@@ -34,11 +36,18 @@ export function ClientView({
     if (!instructor?.id) {
       return;
     }
+    setShowAllInstructors(false);
     setSelectedInstructorId(instructor.id);
   }
 
   function handleBackToClient() {
     setSelectedInstructorId(null);
+    setShowAllInstructors(false);
+  }
+
+  function handleOpenAllInstructors() {
+    setSelectedInstructorId(null);
+    setShowAllInstructors(true);
   }
 
   if (selectedInstructor) {
@@ -52,12 +61,29 @@ export function ClientView({
     );
   }
 
+  if (showAllInstructors) {
+    return (
+      <section className="panel-card border-0 p-4 p-lg-5 mb-4">
+        <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
+          <div>
+            <div className="section-heading mb-1">{t('instructors')}</div>
+            <div className="customer-panel-title customer-panel-title-sm">{t('viewAllInstructors')}</div>
+          </div>
+          <button type="button" className="instructors-view-all" onClick={handleBackToClient}>
+            {t('backToClientView')}
+          </button>
+        </div>
+
+        <Instructors t={t} instructors={instructors} onSelectInstructor={handleSelectInstructor} />
+      </section>
+    );
+  }
+
   return (
     <>
       <Home
         t={t}
         user={user}
-        classesCount={classes.length}
         totalSeats={totalSeats}
         liveClasses={liveClasses}
         totalReservations={totalReservations}
@@ -66,12 +92,8 @@ export function ClientView({
         highlightedInstructors={highlightedInstructors}
         formatDateTime={formatDateTime}
         onSelectInstructor={handleSelectInstructor}
+        onViewAllInstructors={handleOpenAllInstructors}
       />
-
-      <section className="client-section-intro panel-card border-0 mb-4">
-        <h2 className="client-section-title mb-2">{t('clientWorkspaceTitle')}</h2>
-        <p className="class-meta mb-0">{t('clientWorkspaceSubtitle')}</p>
-      </section>
 
       <Row className="g-4 client-content-grid">
         <Classes t={t} classes={classes} reservations={reservations} formatDateTime={formatDateTime} onReserve={onReserve} />

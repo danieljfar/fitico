@@ -4,7 +4,7 @@ const CLASS_INCLUDES = [
   {
     model: Instructor,
     as: 'instructor',
-    attributes: ['id', 'name', 'specialty', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
+    attributes: ['id', 'name', 'email', 'specialty', 'bio', 'status', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt'],
   },
 ];
 

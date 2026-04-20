@@ -297,6 +297,118 @@ body {
   gap: 1rem;
 }
 
+.customer-home-shell {
+  display: grid;
+}
+
+.customer-hero-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(15, 118, 110, 0.16), transparent 36%),
+    radial-gradient(circle at 10% 90%, rgba(217, 119, 6, 0.14), transparent 30%),
+    rgba(255, 255, 255, 0.82) !important;
+}
+
+.customer-hero-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  pointer-events: none;
+}
+
+.customer-pulse-card,
+.customer-classes-card,
+.customer-instructors-card {
+  background: rgba(255, 255, 255, 0.88) !important;
+}
+
+.customer-panel-title {
+  font-family: Archivo, sans-serif;
+  font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.customer-panel-title-sm {
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+}
+
+.home-hero-actions {
+  display: grid;
+  gap: 0.8rem;
+  justify-items: start;
+}
+
+.hero-support-copy {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.customer-next-class-card {
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.customer-focus-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.customer-focus-item {
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.72rem 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.customer-focus-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.customer-focus-value {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.customer-featured-card {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(246, 250, 249, 0.88));
+}
+
+.instructors-view-all {
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.28rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.instructors-view-all:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+}
+
 .client-section-intro {
   padding: 1.2rem 1.35rem;
   border-radius: 1.2rem;
@@ -334,6 +446,10 @@ body {
 .instructor-chip-button:focus-visible {
   outline: 2px solid rgba(15, 118, 110, 0.45);
   outline-offset: 2px;
+}
+
+.instructor-highlight-button {
+  border: 1px solid rgba(17, 24, 39, 0.08);
 }
 
 .class-item:hover,

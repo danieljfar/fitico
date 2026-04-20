@@ -48,6 +48,13 @@ export function apiClasses() {
   return request('/classes').then((payload) => ({ ...payload, classes: payload.classes || [] }));
 }
 
+export function apiFeaturedInstructors(limit = 4) {
+  return request(withQuery('/classes/featured-instructors', { limit })).then((payload) => ({
+    ...payload,
+    instructors: payload.instructors || [],
+  }));
+}
+
 export function apiMyReservations(token) {
   return request('/reservations/me', { token });
 }

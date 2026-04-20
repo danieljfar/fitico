@@ -23,6 +23,7 @@ import {
   cancelReservationAsAdmin,
   reserveClassAsAdmin,
 } from './reservationService.js';
+import { invalidateFeaturedInstructorsCache } from './classService.js';
 
 const INSTRUCTORS_CACHE_KEY = 'admin:instructors:list';
 
@@ -147,6 +148,7 @@ export async function createInstructorRecord(payload, actorId) {
   });
 
   await deleteCacheKey(INSTRUCTORS_CACHE_KEY);
+  await invalidateFeaturedInstructorsCache();
 
   return serializeInstructor(instructor);
 }
@@ -197,6 +199,7 @@ export async function updateInstructorRecord(instructorId, payload, actorId) {
   }
 
   await deleteCacheKey(INSTRUCTORS_CACHE_KEY);
+  await invalidateFeaturedInstructorsCache();
 
   return serializeInstructor(instructor);
 }
@@ -222,6 +225,7 @@ export async function deleteInstructorRecord(instructorId) {
 
   await deleteInstructorById(numericInstructorId);
   await deleteCacheKey(INSTRUCTORS_CACHE_KEY);
+  await invalidateFeaturedInstructorsCache();
 
   return { deleted: true };
 }
@@ -354,6 +358,8 @@ export async function createClassRecord(payload, actorId) {
   const classes = await listClasses();
   const created = classes.find((item) => item.id === classItem.id);
 
+  await invalidateFeaturedInstructorsCache();
+
   return serializeClass(created || classItem);
 }
 
@@ -417,6 +423,8 @@ export async function updateClassRecord(classId, payload, actorId) {
   if (!classItem) {
     throw new ApiError(404, 'Class not found');
   }
+
+  await invalidateFeaturedInstructorsCache();
 
   return serializeClass(classItem);
 }

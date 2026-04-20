@@ -44,12 +44,19 @@ export async function getJsonCache(cacheKey) {
   }
 }
 
-export async function setJsonCache(cacheKey, value) {
+export async function setJsonCache(cacheKey, value, ttlSeconds = null) {
   try {
     const redisClient = getClient();
     await ensureConnected(redisClient);
 
-    await redisClient.set(cacheKey, JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+
+    if (Number.isInteger(ttlSeconds) && ttlSeconds > 0) {
+      await redisClient.set(cacheKey, serialized, 'EX', ttlSeconds);
+    } else {
+      await redisClient.set(cacheKey, serialized);
+    }
+
     return true;
   } catch (error) {
     console.warn(`[redis:set] ${error.message}`);

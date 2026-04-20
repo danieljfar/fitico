@@ -10,6 +10,7 @@ import {
 } from '../repositories/reservationRepository.js';
 import { findClassById } from '../repositories/classRepository.js';
 import { findOrCreateCreditByUserId } from '../repositories/creditRepository.js';
+import { invalidateFeaturedInstructorsCache } from './classService.js';
 
 function serializeBooking(booking) {
   const classItem = booking.class;
@@ -103,6 +104,8 @@ async function reserveClassForUser(userId, classId, actorId) {
       capacity: classItem.capacity,
     });
 
+    await invalidateFeaturedInstructorsCache();
+
     return serializeBooking({
       ...booking.toJSON(),
       class: classItem.toJSON(),
@@ -165,6 +168,8 @@ async function cancelReservationInternal({ reservationId, actorId, requesterUser
         capacity: classItem.capacity,
       });
     }
+
+    await invalidateFeaturedInstructorsCache();
 
     return serializeBooking({
       ...booking.toJSON(),
@@ -236,6 +241,8 @@ export async function cancelClassAndRefundCredits(classId, actorId) {
       capacity: classItem.capacity,
       status: classItem.status,
     });
+
+    await invalidateFeaturedInstructorsCache();
 
     return {
       class: {
