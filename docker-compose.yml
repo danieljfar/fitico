@@ -1,17 +1,17 @@
 services:
   db:
     image: mysql:8.0
-    container_name: fitness-db
+    container_name: fitico-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root_password}
-      MYSQL_DATABASE: ${DB_NAME:-fitness_flow}
+      MYSQL_DATABASE: ${DB_NAME:-fitico}
     ports:
       - "${DB_PORT:-3306}:3306"
     volumes:
       - db_data:/var/lib/mysql
     networks:
-      - fitness-network
+      - fitico-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -20,16 +20,16 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: fitness-redis
+    container_name: fitico-redis
     restart: always
     ports:
       - "6379:6379"
     networks:
-      - fitness-network
+      - fitico-network
 
   backend:
     build: ./backend
-    container_name: fitness-backend
+    container_name: fitico-backend
     restart: on-failure
     ports:
       - "${PORT:-4000}:${PORT:-4000}"
@@ -37,7 +37,7 @@ services:
       - DB_HOST=db
       - DB_USER=${DB_USER:-root}
       - DB_PASSWORD=${DB_PASSWORD:-root_password}
-      - DB_NAME=${DB_NAME:-fitness_flow}
+      - DB_NAME=${DB_NAME:-fitico}
       - DB_PORT=3306
       - DB_SYNC_ALTER=${DB_SYNC_ALTER:-true}
       - PORT=${PORT:-4000}
@@ -54,11 +54,11 @@ services:
       redis:
         condition: service_started
     networks:
-      - fitness-network
+      - fitico-network
 
   frontend:
     build: ./frontend
-    container_name: fitness-frontend
+    container_name: fitico-frontend
     restart: on-failure
     ports:
       - "5173:5173"
@@ -72,11 +72,11 @@ services:
     depends_on:
       - backend
     networks:
-      - fitness-network
+      - fitico-network
 
 volumes:
   db_data:
 
 networks:
-  fitness-network:
+  fitico-network:
     driver: bridge

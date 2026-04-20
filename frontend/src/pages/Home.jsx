@@ -38,7 +38,7 @@ export function Home({
 						<FiActivity className="me-2" />
 						{t('eyebrow')}
 					</div>
-					<h1 className="hero-title mb-3">Fitness Flow</h1>
+					<h1 className="hero-title mb-3">Fitico</h1>
 					<p className="hero-copy mb-4">{t('heroCopy')}</p>
 					<Stack direction="horizontal" gap={3} className="flex-wrap">
 						<Badge bg="light" text="dark" className="pill">

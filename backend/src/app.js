@@ -22,7 +22,7 @@ setSocketServer(io);
 
 io.on('connection', (socket) => {
   socket.emit('server:ready', {
-    message: 'Connected to Fitness Flow realtime channel',
+    message: 'Connected to Fitico realtime channel',
   });
 });
 
@@ -35,7 +35,7 @@ async function startServer() {
     const port = Number(process.env.PORT || 4000);
 
     server.listen(port, () => {
-      console.log(`Fitness Flow API ready at http://localhost:${port}`);
+      console.log(`Fitico API ready at http://localhost:${port}`);
     });
   } catch (error) {
     console.error('Unable to start the server:', error);

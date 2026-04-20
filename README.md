@@ -1,4 +1,4 @@
-# Fitness Flow
+# Fitico
 
 Prueba técnica de reservas con arquitectura moderna, Node.js v24.x, MySQL y una interfaz React para demostrar autenticación, transacciones y actualización en tiempo real.
 

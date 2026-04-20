@@ -6,19 +6,19 @@ import { countClasses, createClasses } from '../repositories/classRepository.js'
 const DEMO_INSTRUCTORS = [
   {
     name: 'Sofía Herrera',
-    email: 'sofia.herrera@fitnessflow.local',
+    email: 'sofia.herrera@fitico.local',
     specialty: 'HIIT y resistencia',
     bio: 'Especialista en clases de alta intensidad y acondicionamiento funcional.',
   },
   {
     name: 'Mateo Rivas',
-    email: 'mateo.rivas@fitnessflow.local',
+    email: 'mateo.rivas@fitico.local',
     specialty: 'Movilidad y recuperación',
     bio: 'Enfocado en movilidad, control postural y recuperación activa.',
   },
   {
     name: 'Lucía Navarro',
-    email: 'lucia.navarro@fitnessflow.local',
+    email: 'lucia.navarro@fitico.local',
     specialty: 'Fuerza y técnica',
     bio: 'Trabaja fuerza básica, progresión técnica y mejora de rendimiento.',
   },

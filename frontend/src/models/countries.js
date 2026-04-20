@@ -9,6 +9,6 @@ export const COUNTRY_OPTIONS = [
 ];
 
 export function getCountryFromStorage() {
-  const saved = localStorage.getItem('fitness-country') || 'CO';
+  const saved = localStorage.getItem('fitico-country') || 'CO';
   return COUNTRY_OPTIONS.find((country) => country.code === saved)?.code || COUNTRY_OPTIONS[0].code;
 }

@@ -59,7 +59,7 @@ export function App() {
   const [adminViewMode, setAdminViewMode] = useState('client');
   const [country, setCountry] = useState(getCountryFromStorage);
   const [form, setForm] = useState(emptyAuthForm);
-  const [token, setToken] = useState(() => localStorage.getItem('fitness-token') || '');
+  const [token, setToken] = useState(() => localStorage.getItem('fitico-token') || '');
   const [user, setUser] = useState(null);
   const [classes, setClasses] = useState([]);
   const [reservations, setReservations] = useState([]);
@@ -90,7 +90,7 @@ export function App() {
   const formatDateTime = (value) => formatDateTimeByLocale(value, locale);
 
   useEffect(() => {
-    localStorage.setItem('fitness-country', country);
+    localStorage.setItem('fitico-country', country);
   }, [country]);
 
   useEffect(() => {
@@ -145,7 +145,7 @@ export function App() {
           setUser(response.user);
         }
       } catch {
-        localStorage.removeItem('fitness-token');
+        localStorage.removeItem('fitico-token');
         if (active) {
           setToken('');
           setUser(null);
@@ -270,7 +270,7 @@ export function App() {
           ? await apiRegister(form)
           : await apiLogin({ email: form.email, password: form.password });
 
-      localStorage.setItem('fitness-token', payload.token);
+      localStorage.setItem('fitico-token', payload.token);
       setToken(payload.token);
       setUser(payload.user);
       setForm(emptyAuthForm);
@@ -496,7 +496,7 @@ export function App() {
   }
 
   function logout() {
-    localStorage.removeItem('fitness-token');
+    localStorage.removeItem('fitico-token');
     setToken('');
     setUser(null);
     setAdminViewMode('client');

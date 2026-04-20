@@ -19,12 +19,12 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
 
   app.get('/health', (req, res) => {
-    res.json({ status: 'UP', service: 'Fitness Flow API' });
+    res.json({ status: 'UP', service: 'Fitico API' });
   });
 
   app.get('/', (req, res) => {
     res.json({
-      name: 'Fitness Flow API',
+      name: 'Fitico API',
       version: '1.0.0',
       endpoints: ['/health', '/docs', '/docs.json', '/api/auth', '/api/classes', '/api/bookings'],
     });

@@ -1,4 +1,4 @@
-# Copilot Project Instructions: Fitness Flow Engine
+# Copilot Project Instructions: Fitico Engine
 
 You are an expert Senior Full Stack Developer. Act as a pair programmer for this Reservation Engine project.
 

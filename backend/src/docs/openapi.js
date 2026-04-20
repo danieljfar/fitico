@@ -1,7 +1,7 @@
 const openApiSpec = {
   openapi: '3.0.3',
   info: {
-    title: 'Fitness Flow API',
+    title: 'Fitico API',
     version: '1.0.0',
     description: 'Reservation engine API with JWT auth, classes, and bookings.',
   },
