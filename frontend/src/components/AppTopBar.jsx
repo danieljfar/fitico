@@ -17,6 +17,7 @@ export function AppTopBar({
   onLogout,
 }) {
   const canShowProfileButton = Boolean(user) && (!isAdmin || adminViewMode === 'client');
+  const canShowCredits = Boolean(user) && (!isAdmin || adminViewMode === 'client');
 
   return (
     <Row className="mb-4">
@@ -67,14 +68,19 @@ export function AppTopBar({
 
             {user ? (
               <>
+                {canShowCredits ? (
+                  <span className="credits-pill">
+                    {t('creditsBalance')}: {Number(user.credits ?? 0)}
+                  </span>
+                ) : null}
                 {canShowProfileButton ? (
                   <Button
-                    variant={clientViewSection === 'profile' ? 'dark' : 'outline-dark'}
+                    variant="outline-dark"
                     size="sm"
                     className="rounded-pill"
                     onClick={() => onSelectClientViewSection(clientViewSection === 'profile' ? 'home' : 'profile')}
                   >
-                    {t('profileSection')}
+                    {clientViewSection === 'profile' ? t('homeSection') : t('profileSection')}
                   </Button>
                 ) : null}
                 <Button variant="outline-dark" size="sm" className="rounded-pill" onClick={onLogout}>

@@ -149,7 +149,7 @@ export async function getDashboardMetrics() {
     ClassModel.findAll({
       attributes: [
         [sequelize.fn('SUM', sequelize.col('capacity')), 'totalCapacity'],
-        [sequelize.fn('SUM', sequelize.col('bookedCount')), 'totalBooked'],
+        [sequelize.fn('SUM', sequelize.col('booked_count')), 'totalBooked'],
       ],
       raw: true,
     }),

@@ -6,9 +6,21 @@ async function ensureClassBookedCountColumn() {
   const tableName = 'classes';
 
   const tableDefinition = await queryInterface.describeTable(tableName);
+  const hasLegacyBookedCount = Object.prototype.hasOwnProperty.call(tableDefinition, 'bookedCount');
+  const hasBookedCount = Object.prototype.hasOwnProperty.call(tableDefinition, 'booked_count');
 
-  if (!Object.prototype.hasOwnProperty.call(tableDefinition, 'bookedCount')) {
-    await queryInterface.addColumn(tableName, 'bookedCount', {
+  if (hasLegacyBookedCount && !hasBookedCount) {
+    await queryInterface.renameColumn(tableName, 'bookedCount', 'booked_count');
+    return;
+  }
+
+  if (hasLegacyBookedCount && hasBookedCount) {
+    await queryInterface.removeColumn(tableName, 'bookedCount');
+    return;
+  }
+
+  if (!hasBookedCount) {
+    await queryInterface.addColumn(tableName, 'booked_count', {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       defaultValue: 0,

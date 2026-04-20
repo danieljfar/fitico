@@ -86,6 +86,17 @@ export function App() {
   const [creditsLoading, setCreditsLoading] = useState(false);
   const [selectedCreditUser, setSelectedCreditUser] = useState(null);
   const [creditEditValue, setCreditEditValue] = useState('');
+  const [reservationConfirmState, setReservationConfirmState] = useState({
+    open: false,
+    classSession: null,
+    submitting: false,
+  });
+  const [reservationAlertState, setReservationAlertState] = useState({
+    open: false,
+    success: false,
+    title: '',
+    message: '',
+  });
   const countrySelectorRef = useRef(null);
 
   const selectedCountry = useMemo(
@@ -411,7 +422,25 @@ export function App() {
     }
   }
 
-  async function handleReserve(classId) {
+  function openReservationAlert(success, title, message) {
+    setReservationAlertState({
+      open: true,
+      success,
+      title,
+      message,
+    });
+  }
+
+  function closeReservationAlert() {
+    setReservationAlertState({
+      open: false,
+      success: false,
+      title: '',
+      message: '',
+    });
+  }
+
+  async function handleReserve(classSessionOrId) {
     if (!token) {
       setAuthMode('login');
       setShowAuthModal(true);
@@ -419,12 +448,51 @@ export function App() {
       return;
     }
 
+    const classSession =
+      typeof classSessionOrId === 'object'
+        ? classSessionOrId
+        : classes.find((item) => item.id === classSessionOrId) || null;
+
+    const currentCredits = Number(user?.credits ?? 0);
+
+    if (currentCredits <= 0) {
+      openReservationAlert(false, t('reservationFailedTitle'), t('reservationFailedNoCredits'));
+      return;
+    }
+
+    setReservationConfirmState({
+      open: true,
+      classSession,
+      submitting: false,
+    });
+  }
+
+  async function confirmReservation() {
+    if (!reservationConfirmState.classSession?.id || !token) {
+      return;
+    }
+
+    setReservationConfirmState((current) => ({ ...current, submitting: true }));
+
     try {
-      await apiCreateReservation(token, classId);
-      toast.success(t('reservationCreated'));
+      await apiCreateReservation(token, reservationConfirmState.classSession.id);
       await refreshAuthenticatedUserData(token);
+
+      setReservationConfirmState({
+        open: false,
+        classSession: null,
+        submitting: false,
+      });
+
+      openReservationAlert(true, t('reservationSuccessTitle'), t('reservationCreated'));
     } catch (error) {
-      toast.error(error.message);
+      setReservationConfirmState({
+        open: false,
+        classSession: null,
+        submitting: false,
+      });
+
+      openReservationAlert(false, t('reservationFailedTitle'), error.message || t('reservationFailedUnknown'));
     }
   }
 
@@ -750,6 +818,8 @@ export function App() {
     setCreditsLoading(false);
     setSelectedCreditUser(null);
     setCreditEditValue('');
+    setReservationConfirmState({ open: false, classSession: null, submitting: false });
+    closeReservationAlert();
     toast.success(t('authSignedOut'));
   }
 
@@ -908,6 +978,79 @@ export function App() {
         setReservationModalState={setReservationModalState}
         handleCreateReservationForUser={handleCreateReservationForUser}
       />
+
+      <Modal
+        show={reservationConfirmState.open}
+        onHide={() => setReservationConfirmState({ open: false, classSession: null, submitting: false })}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{t('reservationConfirmTitle')}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="class-meta mb-3">{t('reservationConfirmBody')}</p>
+
+          {reservationConfirmState.classSession ? (
+            <div className="reservation-row">
+              <div className="class-title mb-1">
+                {reservationConfirmState.classSession.title || reservationConfirmState.classSession.class?.name || t('className')}
+              </div>
+              <div className="class-meta mb-1">
+                {reservationConfirmState.classSession.startsAt
+                  ? formatDateTime(reservationConfirmState.classSession.startsAt)
+                  : t('scheduled')}
+              </div>
+              <div className="class-meta">
+                {t('creditsBalance')}: {Number(user?.credits ?? 0)}
+              </div>
+            </div>
+          ) : null}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="outline-dark"
+            className="rounded-pill"
+            onClick={() => setReservationConfirmState({ open: false, classSession: null, submitting: false })}
+            disabled={reservationConfirmState.submitting}
+          >
+            {t('closeAction')}
+          </Button>
+          <Button
+            variant="dark"
+            className="rounded-pill"
+            onClick={confirmReservation}
+            disabled={reservationConfirmState.submitting}
+          >
+            {reservationConfirmState.submitting ? t('authProcessing') : t('confirmReservationAction')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={reservationAlertState.open} onHide={closeReservationAlert} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{reservationAlertState.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="class-meta mb-0">{reservationAlertState.message}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          {reservationAlertState.success ? (
+            <Button
+              variant="dark"
+              className="rounded-pill"
+              onClick={() => {
+                setClientViewSection('profile');
+                closeReservationAlert();
+              }}
+            >
+              {t('goToProfile')}
+            </Button>
+          ) : null}
+          <Button variant="outline-dark" className="rounded-pill" onClick={closeReservationAlert}>
+            {t('closeAction')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <Modal show={showAuthModal} onHide={() => setShowAuthModal(false)} centered>
         <Modal.Header closeButton>

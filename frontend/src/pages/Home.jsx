@@ -30,9 +30,6 @@ export function Home({
 								<FiActivity className="me-2" />
 								{t('eyebrow')}
 							</div>
-
-							{user?.name ? <div className="home-user-line mb-2">{t('signedAs')} {user.name}</div> : null}
-
 							<h1 className="hero-title mb-3">Fitico</h1>
 							<p className="hero-copy mb-4">{t('heroCopy')}</p>
 
@@ -68,7 +65,6 @@ export function Home({
 											<span>{item.label}</span>
 										</div>
 										<div className="customer-focus-value-wrap">
-											<span className="customer-focus-index">0{index + 1}</span>
 											<div className="customer-focus-value">{item.value}</div>
 										</div>
 									</div>

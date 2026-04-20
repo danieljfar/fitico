@@ -45,7 +45,7 @@ export function Classes({ t, classes, reservations, formatDateTime, onReserve })
                     variant={isMine ? 'outline-secondary' : 'dark'}
                     className="w-100 rounded-pill"
                     disabled={classSession.isFull || isMine}
-                    onClick={() => onReserve(classSession.id)}
+                    onClick={() => onReserve(classSession)}
                   >
                     {isMine ? t('reserved') : classSession.isFull ? t('soldOut') : t('reserveNow')}
                   </Button>

@@ -76,18 +76,8 @@ export function defineClassModel(sequelize) {
     },
     {
       tableName: 'classes',
-      timestamps: false,
+      timestamps: true,
       underscored: true,
-      hooks: {
-        beforeCreate(instance) {
-          const now = new Date();
-          instance.createdAt = now;
-          instance.updatedAt = now;
-        },
-        beforeUpdate(instance) {
-          instance.updatedAt = new Date();
-        },
-      },
     }
   );
 }
