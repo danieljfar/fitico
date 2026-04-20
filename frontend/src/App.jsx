@@ -183,7 +183,7 @@ export function App() {
       transports: ['websocket'],
     });
 
-    socket.on('slot_updated', async () => {
+    const handleClassUpdate = async () => {
       try {
         const classesPayload = await apiClasses();
         const featuredInstructorsPayload = await apiFeaturedInstructors(4);
@@ -206,7 +206,10 @@ export function App() {
       } catch (error) {
         toast.error(error.message);
       }
-    });
+    };
+
+    socket.on('slot_updated', handleClassUpdate);
+    socket.on('class_updated', handleClassUpdate);
 
     return () => {
       active = false;

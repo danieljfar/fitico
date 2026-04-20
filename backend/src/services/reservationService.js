@@ -51,6 +51,22 @@ function serializeBooking(booking) {
   };
 }
 
+function emitClassOccupancyUpdated(classItem) {
+  if (!classItem) {
+    return;
+  }
+
+  const payload = {
+    classId: classItem.id,
+    bookedCount: classItem.bookedCount,
+    capacity: classItem.capacity,
+    ...(classItem.status ? { status: classItem.status } : {}),
+  };
+
+  emitSocketEvent('class_updated', payload);
+  emitSocketEvent('slot_updated', payload);
+}
+
 async function reserveClassForUser(userId, classId, actorId) {
   const transaction = await sequelize.transaction();
 
@@ -98,11 +114,7 @@ async function reserveClassForUser(userId, classId, actorId) {
 
     await transaction.commit();
 
-    emitSocketEvent('class_updated', {
-      classId: classItem.id,
-      bookedCount: classItem.bookedCount,
-      capacity: classItem.capacity,
-    });
+    emitClassOccupancyUpdated(classItem);
 
     await invalidateFeaturedInstructorsCache();
 
@@ -161,13 +173,7 @@ async function cancelReservationInternal({ reservationId, actorId, requesterUser
 
     await transaction.commit();
 
-    if (classItem) {
-      emitSocketEvent('class_updated', {
-        classId: classItem.id,
-        bookedCount: classItem.bookedCount,
-        capacity: classItem.capacity,
-      });
-    }
+    emitClassOccupancyUpdated(classItem);
 
     await invalidateFeaturedInstructorsCache();
 
@@ -228,19 +234,7 @@ export async function cancelClassAndRefundCredits(classId, actorId) {
 
     await transaction.commit();
 
-    emitSocketEvent('class_updated', {
-      classId: classItem.id,
-      bookedCount: classItem.bookedCount,
-      capacity: classItem.capacity,
-      status: classItem.status,
-    });
-
-    emitSocketEvent('slot_updated', {
-      classId: classItem.id,
-      bookedCount: classItem.bookedCount,
-      capacity: classItem.capacity,
-      status: classItem.status,
-    });
+    emitClassOccupancyUpdated(classItem);
 
     await invalidateFeaturedInstructorsCache();
 
