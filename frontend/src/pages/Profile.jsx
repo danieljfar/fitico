@@ -27,13 +27,13 @@ export function Profile({ t, token, reservations, formatDateTime, onOpenAuthModa
               <ListGroup.Item key={reservation.id} className="reservation-row">
                 <div className="d-flex justify-content-between gap-3">
                   <div>
-                    <div className="slot-title mb-1">{reservation.slot?.title}</div>
-                    <div className="slot-meta">
+                    <div className="class-title mb-1">{reservation.slot?.title}</div>
+                    <div className="class-meta">
                       {reservation.slot?.startsAt ? formatDateTime(reservation.slot.startsAt) : t('scheduled')}
                     </div>
-                    {reservation.slot?.class?.name ? <div className="slot-meta">{reservation.slot.class.name}</div> : null}
+                    {reservation.slot?.class?.name ? <div className="class-meta">{reservation.slot.class.name}</div> : null}
                     {reservation.slot?.bikeLabel ? (
-                      <div className="slot-meta">
+                      <div className="class-meta">
                         {t('bikeLabel')}: {reservation.slot.bikeLabel}
                       </div>
                     ) : null}

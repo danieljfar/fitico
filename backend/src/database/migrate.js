@@ -1,4 +1,20 @@
 import { sequelize } from './index.js';
+import { DataTypes } from 'sequelize';
+
+async function ensureClassBookedCountColumn() {
+  const queryInterface = sequelize.getQueryInterface();
+  const tableName = 'classes';
+
+  const tableDefinition = await queryInterface.describeTable(tableName);
+
+  if (!Object.prototype.hasOwnProperty.call(tableDefinition, 'bookedCount')) {
+    await queryInterface.addColumn(tableName, 'bookedCount', {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      defaultValue: 0,
+    });
+  }
+}
 
 export async function runMigrations() {
   const shouldForce = process.env.DB_SYNC_FORCE === 'true';
@@ -11,10 +27,12 @@ export async function runMigrations() {
 
   if (shouldAlter) {
     await sequelize.sync({ alter: true });
+    await ensureClassBookedCountColumn();
     return;
   }
 
   await sequelize.sync();
+  await ensureClassBookedCountColumn();
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

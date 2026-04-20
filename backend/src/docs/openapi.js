@@ -69,7 +69,7 @@ const openApiSpec = {
           capacity: { type: 'integer', nullable: true },
           bookedCount: { type: 'integer' },
           status: { type: 'string', enum: ['open', 'closed'] },
-          instructorId: { type: 'integer', nullable: true },
+          instructorId: { type: 'integer' },
           createdBy: { type: 'integer', nullable: true },
           updatedBy: { type: 'integer', nullable: true },
           createdAt: { type: 'string', format: 'date-time' },

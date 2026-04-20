@@ -8,15 +8,6 @@ const CLASS_INCLUDES = [
   },
 ];
 
-const CLASS_INCLUDES = [
-  {
-    model: ClassModel,
-    as: 'class',
-    attributes: ['id', 'name', 'level', 'durationMinutes', 'status'],
-    include: CLASS_INCLUDES,
-  },
-];
-
 export function listInstructors() {
   return Instructor.findAll({ order: [['name', 'ASC']] });
 }

@@ -1,5 +1,5 @@
 import { Badge, Button, Card, Col, Row, Stack } from 'react-bootstrap';
-import { FiActivity, FiClock, FiGlobe, FiLock, FiRefreshCw, FiUsers } from 'react-icons/fi';
+import { FiActivity, FiClock, FiLock, FiRefreshCw, FiStar, FiUsers } from 'react-icons/fi';
 
 function StatCard({ icon, label, value }) {
 	return (
@@ -20,16 +20,22 @@ function StatCard({ icon, label, value }) {
 export function Home({
 	t,
 	user,
-	slotsCount,
+	classesCount,
 	totalSeats,
-	liveSlots,
+	liveClasses,
 	totalReservations,
 	booting,
+	featuredClasses,
+	highlightedInstructors,
+	formatDateTime,
 	selectedCountry,
 	countryOptions,
 	isCountrySelectorOpen,
 	onToggleCountrySelector,
 	onSelectCountry,
+	isAdmin,
+	adminViewMode,
+	onToggleAdminViewMode,
 	onOpenAuthModal,
 	onLogout,
 }) {
@@ -66,6 +72,16 @@ export function Home({
 						</div>
 
 						<div className="auth-control">
+							{isAdmin ? (
+								<Button
+									variant={adminViewMode === 'admin' ? 'dark' : 'outline-dark'}
+									className="rounded-pill admin-view-toggle"
+									onClick={onToggleAdminViewMode}
+								>
+									{adminViewMode === 'admin' ? t('clientView') : t('adminView')}
+								</Button>
+							) : null}
+
 							{user ? (
 								<>
 									<span className="welcome-line">
@@ -86,7 +102,7 @@ export function Home({
 			</Row>
 
 			<Row className="align-items-center g-4 mb-4 mb-lg-5">
-				<Col lg={10}>
+				<Col lg={8}>
 					<div className="eyebrow mb-2">
 						<FiActivity className="me-2" />
 						{t('eyebrow')}
@@ -96,7 +112,7 @@ export function Home({
 					<Stack direction="horizontal" gap={3} className="flex-wrap">
 						<Badge bg="light" text="dark" className="pill">
 							<FiUsers className="me-2" />
-							{slotsCount} {t('slotsBadge')}
+							{classesCount} {t('classesBadge')}
 						</Badge>
 						<Badge bg="light" text="dark" className="pill">
 							<FiClock className="me-2" />
@@ -108,6 +124,22 @@ export function Home({
 						</Badge>
 					</Stack>
 				</Col>
+				<Col lg={4}>
+					<Card className="panel-card h-100 border-0 hero-side-panel">
+						<Card.Body className="p-3 p-lg-4">
+							<div className="section-heading mb-2">{t('instructors')}</div>
+							<div className="hero-side-title mb-3">{t('heroInstructorPanel')}</div>
+							<div className="instructor-chip-grid">
+								{highlightedInstructors.map((instructor) => (
+									<div key={instructor.name} className="instructor-chip">
+										<FiStar />
+										<span>{instructor.name}</span>
+									</div>
+								))}
+							</div>
+						</Card.Body>
+					</Card>
+				</Col>
 			</Row>
 
 			<Row className="g-3 g-lg-4 mb-4">
@@ -115,10 +147,59 @@ export function Home({
 					<StatCard icon={<FiUsers />} label={t('availableSeats')} value={booting ? '...' : totalSeats} />
 				</Col>
 				<Col md={4}>
-					<StatCard icon={<FiRefreshCw />} label={t('liveSlots')} value={booting ? '...' : liveSlots} />
+					<StatCard icon={<FiRefreshCw />} label={t('liveClasses')} value={booting ? '...' : liveClasses} />
 				</Col>
 				<Col md={4}>
 					<StatCard icon={<FiClock />} label={t('yourReservations')} value={user ? totalReservations : t('signIn')} />
+				</Col>
+			</Row>
+
+			<Row className="g-3 g-lg-4 mb-4 mb-lg-5">
+				<Col lg={8}>
+					<Card className="panel-card border-0">
+						<Card.Body className="p-4">
+							<div className="section-heading mb-3">{t('sessionClasses')}</div>
+							<div className="featured-class-grid">
+								{featuredClasses.length === 0 ? (
+									<div className="empty-state">{t('noClassesYet')}</div>
+								) : (
+									featuredClasses.map((classSession) => (
+										<div key={classSession.id} className="featured-class-card">
+											<div className="class-title mb-1">{classSession.class?.name || classSession.title}</div>
+											<div className="class-meta mb-2">
+												{classSession.startsAt ? formatDateTime(classSession.startsAt) : t('scheduled')}
+											</div>
+											<div className="d-flex justify-content-between class-meta gap-2">
+												<span>{classSession.class?.instructor?.name || t('coachAssignedSoon')}</span>
+												<span>
+													{classSession.availableSeats} {t('seatsLeft')}
+												</span>
+											</div>
+										</div>
+									))
+								)}
+							</div>
+						</Card.Body>
+					</Card>
+				</Col>
+				<Col lg={4}>
+					<Card className="panel-card border-0 h-100">
+						<Card.Body className="p-4">
+							<div className="section-heading mb-3">{t('instructors')}</div>
+							<div className="instructor-highlight-list">
+								{highlightedInstructors.length === 0 ? (
+									<div className="empty-state">{t('noInstructorsYet')}</div>
+								) : (
+									highlightedInstructors.map((instructor) => (
+										<div key={`${instructor.name}-${instructor.specialty}`} className="instructor-highlight-item">
+											<div className="class-title mb-1">{instructor.name}</div>
+											<div className="class-meta">{instructor.specialty || t('noSpecialty')}</div>
+										</div>
+									))
+								)}
+							</div>
+						</Card.Body>
+					</Card>
 				</Col>
 			</Row>
 		</>

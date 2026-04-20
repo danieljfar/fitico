@@ -8,8 +8,8 @@ export function Instructors({ t, instructors }) {
         {instructors.map((instructor) => (
           <ListGroup.Item key={instructor.id} className="d-flex justify-content-between align-items-center">
             <div>
-              <div className="slot-title mb-0">{instructor.name}</div>
-              <div className="slot-meta">{instructor.specialty || t('noSpecialty')}</div>
+              <div className="class-title mb-0">{instructor.name}</div>
+              <div className="class-meta">{instructor.specialty || t('noSpecialty')}</div>
             </div>
             <Badge bg={instructor.status === 'active' ? 'success' : 'secondary'}>{instructor.status}</Badge>
           </ListGroup.Item>

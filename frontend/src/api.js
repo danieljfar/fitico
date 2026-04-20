@@ -19,6 +19,19 @@ async function request(path, { token, method = 'GET', body } = {}) {
   return payload;
 }
 
+function withQuery(path, query = {}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, value);
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `${path}?${queryString}` : path;
+}
+
 export function apiRegister(data) {
   return request('/auth/register', { method: 'POST', body: data });
 }
@@ -31,19 +44,19 @@ export function apiMe(token) {
   return request('/auth/me', { token });
 }
 
-export function apiSlots() {
-  return request('/slots');
+export function apiClasses() {
+  return request('/classes').then((payload) => ({ ...payload, classes: payload.classes || [] }));
 }
 
 export function apiMyReservations(token) {
   return request('/reservations/me', { token });
 }
 
-export function apiCreateReservation(token, slotId) {
+export function apiCreateReservation(token, classId) {
   return request('/reservations', {
     method: 'POST',
     token,
-    body: { slotId },
+    body: { classId },
   });
 }
 
@@ -70,6 +83,21 @@ export function apiAdminCreateInstructor(token, data) {
   });
 }
 
+export function apiAdminUpdateInstructor(token, id, data) {
+  return request(`/admin/instructors/${id}`, {
+    method: 'PATCH',
+    token,
+    body: data,
+  });
+}
+
+export function apiAdminDeleteInstructor(token, id) {
+  return request(`/admin/instructors/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
 export function apiAdminClasses(token) {
   return request('/admin/classes', { token });
 }
@@ -82,14 +110,52 @@ export function apiAdminCreateClass(token, data) {
   });
 }
 
-export function apiAdminSlots(token) {
-  return request('/admin/slots', { token });
+export function apiAdminUpdateClass(token, id, data) {
+  return request(`/admin/classes/${id}`, {
+    method: 'PATCH',
+    token,
+    body: data,
+  });
 }
 
-export function apiAdminCreateSlot(token, data) {
-  return request('/admin/slots', {
+export function apiAdminDeleteClass(token, id) {
+  return request(`/admin/classes/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+export function apiAdminClassesSchedule(token) {
+  return request('/admin/classes', { token }).then((payload) => ({ ...payload, classes: payload.classes || [] }));
+}
+
+export function apiAdminCreateClassSession(token, data) {
+  return request('/admin/classes', {
     method: 'POST',
     token,
     body: data,
+  }).then((payload) => ({ ...payload, classSession: payload.class || null }));
+}
+
+export function apiAdminSearchUsers(token, query) {
+  return request(withQuery('/admin/users', { q: query }), { token }).then((payload) => ({ ...payload, users: payload.users || [] }));
+}
+
+export function apiAdminClassReservations(token, classId) {
+  return request(`/admin/classes/${classId}/reservations`, { token }).then((payload) => ({ ...payload, reservations: payload.reservations || [] }));
+}
+
+export function apiAdminDeleteReservation(token, id) {
+  return request(`/admin/reservations/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+export function apiAdminCreateReservation(token, classId, userId) {
+  return request(`/admin/classes/${classId}/reservations`, {
+    method: 'POST',
+    token,
+    body: { userId },
   });
 }

@@ -1,8 +1,7 @@
 import { Card, Col, Row, Stack } from 'react-bootstrap';
 import { FiActivity, FiArrowRight, FiClock, FiLock, FiRefreshCw, FiUsers } from 'react-icons/fi';
-import { Instructors } from '../Instructors.jsx';
 import { InstructorsManager } from './InstructorsManager.jsx';
-import { SlotsManager } from './SlotsManager.jsx';
+import { ClassesManager } from './ClassesManager.jsx';
 
 function StatCard({ icon, label, value }) {
   return (
@@ -25,18 +24,24 @@ export function Dashboard({
   adminLoading,
   adminMetrics,
   instructorForm,
-  setInstructorForm,
   classForm,
-  setClassForm,
-  slotForm,
-  setSlotForm,
+  classSessions,
   adminInstructors,
   adminClasses,
-  adminSlots,
+  adminClassSessions,
+  reservationsByClass,
+  expandedClassId,
   formatDateTime,
   onCreateInstructor,
+  onEditInstructor,
+  onDeleteInstructor,
   onCreateClass,
-  onCreateSlot,
+  onEditClass,
+  onDeleteClass,
+  onToggleReservations,
+  onCreateReservation,
+  onDeleteReservation,
+  onCreateClassSession,
 }) {
   return (
     <Row className="g-4 mt-1">
@@ -55,7 +60,11 @@ export function Dashboard({
                 <StatCard icon={<FiClock />} label={t('classes')} value={adminLoading ? '...' : adminMetrics?.classes ?? 0} />
               </Col>
               <Col md={4} lg={2}>
-                <StatCard icon={<FiRefreshCw />} label={t('slots')} value={adminLoading ? '...' : adminMetrics?.slots ?? 0} />
+                <StatCard
+                  icon={<FiRefreshCw />}
+                  label={t('classSessions')}
+                  value={adminLoading ? '...' : adminMetrics?.slots ?? 0}
+                />
               </Col>
               <Col md={4} lg={2}>
                 <StatCard
@@ -77,31 +86,26 @@ export function Dashboard({
               <Col lg={4}>
                 <InstructorsManager
                   t={t}
-                  instructorForm={instructorForm}
-                  setInstructorForm={setInstructorForm}
+                  instructors={adminInstructors}
                   onCreateInstructor={onCreateInstructor}
+                  onEditInstructor={onEditInstructor}
+                  onDeleteInstructor={onDeleteInstructor}
                 />
               </Col>
 
-              <SlotsManager
+              <ClassesManager
                 t={t}
-                classForm={classForm}
-                setClassForm={setClassForm}
-                slotForm={slotForm}
-                setSlotForm={setSlotForm}
-                adminInstructors={adminInstructors}
-                adminClasses={adminClasses}
-                adminSlots={adminSlots}
-                formatDateTime={formatDateTime}
+                classes={adminClasses}
+                classSessions={classSessions || adminClassSessions}
+                reservationsByClass={reservationsByClass}
+                expandedClassId={expandedClassId}
                 onCreateClass={onCreateClass}
-                onCreateSlot={onCreateSlot}
+                onEditClass={onEditClass}
+                onDeleteClass={onDeleteClass}
+                onToggleReservations={onToggleReservations}
+                onCreateReservation={onCreateReservation}
+                onDeleteReservation={onDeleteReservation}
               />
-            </Row>
-
-            <Row className="g-4 mt-1">
-              <Col lg={6}>
-                <Instructors t={t} instructors={adminInstructors} />
-              </Col>
             </Row>
           </Card.Body>
         </Card>

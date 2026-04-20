@@ -19,7 +19,7 @@ export function defineClassModel(sequelize) {
       },
       instructorId: {
         type: DataTypes.INTEGER.UNSIGNED,
-        allowNull: true,
+        allowNull: false,
       },
       bikeLabel: {
         type: DataTypes.STRING(64),

@@ -50,21 +50,3 @@ export async function createClassHandler(req, res, next) {
     return next(error);
   }
 }
-
-export async function listClassesHandler(req, res, next) {
-  try {
-    const classes = await getClasses();
-    return res.json({ classes });
-  } catch (error) {
-    return next(error);
-  }
-}
-
-export async function createClassHandler(req, res, next) {
-  try {
-    const classItem = await createClassRecord(req.body, req.user.id);
-    return res.status(201).json({ class: classItem });
-  } catch (error) {
-    return next(error);
-  }
-}
