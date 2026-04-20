@@ -77,6 +77,31 @@ const openApiSpec = {
           instructor: { allOf: [{ $ref: '#/components/schemas/Instructor' }], nullable: true },
         },
       },
+      Reservation: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          status: { type: 'string', enum: ['active', 'cancelled'] },
+          userId: { type: 'integer' },
+          classId: { type: 'integer' },
+          externalBookingId: { type: 'string', nullable: true },
+          createdBy: { type: 'integer', nullable: true },
+          updatedBy: { type: 'integer', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+          user: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              id: { type: 'integer' },
+              name: { type: 'string' },
+              email: { type: 'string', format: 'email' },
+              role: { type: 'string', enum: ['member', 'admin'] },
+            },
+          },
+          class: { allOf: [{ $ref: '#/components/schemas/Class' }], nullable: true },
+        },
+      },
       Booking: {
         type: 'object',
         properties: {
@@ -176,6 +201,32 @@ const openApiSpec = {
         responses: { 200: { description: 'Booking cancelled', content: { 'application/json': { schema: { type: 'object', properties: { booking: { $ref: '#/components/schemas/Booking' } } } } } } },
       },
     },
+    '/api/reservations/me': {
+      get: {
+        tags: ['Bookings'],
+        summary: 'List current user reservations',
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: 'Reservation list', content: { 'application/json': { schema: { type: 'object', properties: { reservations: { type: 'array', items: { $ref: '#/components/schemas/Booking' } } } } } } } },
+      },
+    },
+    '/api/reservations': {
+      post: {
+        tags: ['Bookings'],
+        summary: 'Create reservation for class',
+        security: [{ bearerAuth: [] }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['classId'], properties: { classId: { type: 'integer' } } } } } },
+        responses: { 201: { description: 'Reservation created', content: { 'application/json': { schema: { type: 'object', properties: { reservation: { $ref: '#/components/schemas/Booking' }, booking: { $ref: '#/components/schemas/Booking' } } } } } } },
+      },
+    },
+    '/api/reservations/{id}': {
+      delete: {
+        tags: ['Bookings'],
+        summary: 'Cancel reservation',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'Reservation cancelled', content: { 'application/json': { schema: { type: 'object', properties: { reservation: { $ref: '#/components/schemas/Booking' }, booking: { $ref: '#/components/schemas/Booking' } } } } } } },
+      },
+    },
     '/api/admin/dashboard': {
       get: {
         tags: ['Admin'],
@@ -212,6 +263,15 @@ const openApiSpec = {
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['name', 'instructorId'], properties: { name: { type: 'string' }, description: { type: 'string' }, level: { type: 'string' }, durationMinutes: { type: 'integer' }, instructorId: { type: 'integer' }, bikeLabel: { type: 'string' }, startsAt: { type: 'string', format: 'date-time' }, capacity: { type: 'integer' } } } } } },
         responses: { 201: { description: 'Class created', content: { 'application/json': { schema: { type: 'object', properties: { class: { $ref: '#/components/schemas/Class' } } } } } } },
+      },
+    },
+    '/api/admin/classes/{classId}/reservations': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List reservations for a class',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'classId', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'Reservation list', content: { 'application/json': { schema: { type: 'object', properties: { reservations: { type: 'array', items: { $ref: '#/components/schemas/Reservation' } } } } } } } },
       },
     },
   },

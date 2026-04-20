@@ -1,13 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Container, Form, Modal, Row } from 'react-bootstrap';
+import { Button, Container, Form, Modal } from 'react-bootstrap';
 import { FiArrowRight } from 'react-icons/fi';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
 import { getTranslator } from './i18n/index.js';
+import { AppTopBar } from './components/AppTopBar.jsx';
+import {
+  COUNTRY_OPTIONS,
+  getCountryFromStorage,
+} from './models/countries.js';
+import {
+  emptyAdminModalState,
+  emptyAuthForm,
+  emptyClassForm,
+  emptyInstructorForm,
+  emptyReservationModalState,
+} from './models/forms.js';
 import {
   apiAdminClasses,
   apiAdminCreateClass,
-  apiAdminCreateClassSession,
   apiAdminCreateInstructor,
   apiAdminClassReservations,
   apiAdminClassesSchedule,
@@ -28,56 +39,11 @@ import {
   apiMyReservations,
   apiRegister,
 } from './api.js';
-import { Home } from './pages/Home.jsx';
-import { Profile } from './pages/Profile.jsx';
-import { Classes } from './pages/Classes.jsx';
-import { Dashboard } from './pages/admin/Dashboard.jsx';
+import { ClientView } from './pages/ClientView.jsx';
+import { AdminView } from './pages/admin/AdminView.jsx';
+import { AdminModals } from './pages/admin/AdminModals.jsx';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:4000';
-
-function countryCodeToFlag(code) {
-  return String.fromCodePoint(...code.split('').map((x) => 127397 + x.charCodeAt()));
-}
-
-const COUNTRY_OPTIONS = [
-  { code: 'CO', locale: 'es-CO', lang: 'es', labelKey: 'countryColombia', flag: countryCodeToFlag('CO') },
-  { code: 'MX', locale: 'es-MX', lang: 'es', labelKey: 'countryMexico', flag: countryCodeToFlag('MX') },
-  { code: 'US', locale: 'en-US', lang: 'en', labelKey: 'countryUnitedStates', flag: countryCodeToFlag('US') },
-];
-
-const emptyForm = {
-  name: '',
-  email: '',
-  password: '',
-};
-
-const emptyInstructorForm = {
-  name: '',
-  email: '',
-  specialty: '',
-  bio: '',
-};
-
-const emptyClassForm = {
-  name: '',
-  instructorId: '',
-  level: 'beginner',
-  durationMinutes: 45,
-  description: '',
-};
-
-const emptyClassSessionForm = {
-  classId: '',
-  bikeLabel: '',
-  startsAt: '',
-  capacity: 1,
-  title: '',
-};
-
-function getCountryFromStorage() {
-  const saved = localStorage.getItem('fitness-country') || 'CO';
-  return COUNTRY_OPTIONS.find((country) => country.code === saved)?.code || COUNTRY_OPTIONS[0].code;
-}
 
 function formatDateTimeByLocale(value, locale) {
   return new Intl.DateTimeFormat(locale, {
@@ -92,7 +58,7 @@ export function App() {
   const [isCountrySelectorOpen, setIsCountrySelectorOpen] = useState(false);
   const [adminViewMode, setAdminViewMode] = useState('client');
   const [country, setCountry] = useState(getCountryFromStorage);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(emptyAuthForm);
   const [token, setToken] = useState(() => localStorage.getItem('fitness-token') || '');
   const [user, setUser] = useState(null);
   const [classes, setClasses] = useState([]);
@@ -104,19 +70,12 @@ export function App() {
   const [adminClasses, setAdminClasses] = useState([]);
   const [adminClassSessions, setAdminClassSessions] = useState([]);
   const [adminLoading, setAdminLoading] = useState(false);
-  const [adminModalState, setAdminModalState] = useState({ open: false, entity: null, mode: 'create', id: null });
+  const [adminModalState, setAdminModalState] = useState(emptyAdminModalState);
   const [instructorForm, setInstructorForm] = useState(emptyInstructorForm);
   const [classForm, setClassForm] = useState(emptyClassForm);
   const [classReservationsByClass, setClassReservationsByClass] = useState({});
   const [expandedClassId, setExpandedClassId] = useState(null);
-  const [reservationModalState, setReservationModalState] = useState({
-    open: false,
-    classItem: null,
-    query: '',
-    users: [],
-    selectedUser: null,
-    loading: false,
-  });
+  const [reservationModalState, setReservationModalState] = useState(emptyReservationModalState);
   const countrySelectorRef = useRef(null);
 
   const selectedCountry = useMemo(
@@ -314,7 +273,7 @@ export function App() {
       localStorage.setItem('fitness-token', payload.token);
       setToken(payload.token);
       setUser(payload.user);
-      setForm(emptyForm);
+      setForm(emptyAuthForm);
       setShowAuthModal(false);
       toast.success(authMode === 'register' ? t('authCreateAccount') : t('authWelcomeBack'));
 
@@ -386,7 +345,7 @@ export function App() {
   }
 
   function closeAdminModal() {
-    setAdminModalState({ open: false, entity: null, mode: 'create', id: null });
+    setAdminModalState(emptyAdminModalState);
     setInstructorForm(emptyInstructorForm);
     setClassForm(emptyClassForm);
   }
@@ -470,25 +429,11 @@ export function App() {
   }
 
   function openReservationModal(classItem) {
-    setReservationModalState({
-      open: true,
-      classItem,
-      query: '',
-      users: [],
-      selectedUser: null,
-      loading: false,
-    });
+    setReservationModalState({ ...emptyReservationModalState, open: true, classItem });
   }
 
   function closeReservationModal() {
-    setReservationModalState({
-      open: false,
-      classItem: null,
-      query: '',
-      users: [],
-      selectedUser: null,
-      loading: false,
-    });
+    setReservationModalState(emptyReservationModalState);
   }
 
   async function handleDeleteReservation(reservation) {
@@ -555,8 +500,8 @@ export function App() {
     setToken('');
     setUser(null);
     setAdminViewMode('client');
-    setAdminModalState({ open: false, entity: null, mode: 'create', id: null });
-    setReservationModalState({ open: false, classItem: null, query: '', users: [], selectedUser: null, loading: false });
+    setAdminModalState(emptyAdminModalState);
+    setReservationModalState(emptyReservationModalState);
     setReservations([]);
     setAdminMetrics(null);
     setAdminInstructors([]);
@@ -586,31 +531,23 @@ export function App() {
       <div className="page-glow page-glow-right" />
 
       <Container className="py-4 py-lg-5 position-relative" ref={countrySelectorRef}>
-        <Home
+        <AppTopBar
           t={t}
           user={user}
-          classesCount={classes.length}
-          totalSeats={totalSeats}
-          liveClasses={liveClasses}
-          totalReservations={totalReservations}
-          booting={booting}
-          featuredClasses={featuredClasses}
-          highlightedInstructors={highlightedInstructors}
-          formatDateTime={formatDateTime}
-          adminViewMode={adminViewMode}
-          isAdmin={user?.role === 'admin'}
-          onToggleAdminViewMode={() => setAdminViewMode((current) => (current === 'admin' ? 'client' : 'admin'))}
           selectedCountry={selectedCountry}
           countryOptions={COUNTRY_OPTIONS}
           isCountrySelectorOpen={isCountrySelectorOpen}
           onToggleCountrySelector={() => setIsCountrySelectorOpen((value) => !value)}
           onSelectCountry={handleCountrySelect}
+          isAdmin={user?.role === 'admin'}
+          adminViewMode={adminViewMode}
+          onToggleAdminViewMode={() => setAdminViewMode((current) => (current === 'admin' ? 'client' : 'admin'))}
           onOpenAuthModal={() => setShowAuthModal(true)}
           onLogout={logout}
         />
 
         {user?.role === 'admin' && adminViewMode === 'admin' ? (
-          <Dashboard
+          <AdminView
             t={t}
             adminLoading={adminLoading}
             adminMetrics={adminMetrics}
@@ -619,7 +556,6 @@ export function App() {
             adminClassSessions={adminClassSessions}
             reservationsByClass={classReservationsByClass}
             expandedClassId={expandedClassId}
-            formatDateTime={formatDateTime}
             onCreateInstructor={() => openInstructorModal('create')}
             onEditInstructor={(instructor) => openInstructorModal('edit', instructor)}
             onDeleteInstructor={handleDeleteInstructor}
@@ -631,187 +567,42 @@ export function App() {
             onDeleteReservation={handleDeleteReservation}
           />
         ) : (
-          <Row className="g-4">
-            <Classes
-              t={t}
-              classes={classes}
-              reservations={reservations}
-              formatDateTime={formatDateTime}
-              onReserve={handleReserve}
-            />
-            <Profile
-              t={t}
-              token={token}
-              reservations={reservations}
-              formatDateTime={formatDateTime}
-              onOpenAuthModal={() => setShowAuthModal(true)}
-              onCancel={handleCancel}
-            />
-          </Row>
+          <ClientView
+            t={t}
+            user={user}
+            classes={classes}
+            reservations={reservations}
+            totalSeats={totalSeats}
+            liveClasses={liveClasses}
+            totalReservations={totalReservations}
+            booting={booting}
+            featuredClasses={featuredClasses}
+            highlightedInstructors={highlightedInstructors}
+            formatDateTime={formatDateTime}
+            token={token}
+            onReserve={handleReserve}
+            onCancel={handleCancel}
+            onOpenAuthModal={() => setShowAuthModal(true)}
+          />
         )}
       </Container>
 
-      <Modal show={adminModalState.open} onHide={closeAdminModal} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {adminModalState.entity === 'instructor'
-              ? adminModalState.mode === 'edit'
-                ? t('editInstructor')
-                : t('createInstructor')
-              : adminModalState.mode === 'edit'
-                ? t('editClass')
-                : t('createClass')}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {adminModalState.entity === 'instructor' ? (
-            <Form onSubmit={handleSaveInstructor}>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('authName')}</Form.Label>
-                <Form.Control
-                  value={instructorForm.name}
-                  onChange={(event) => setInstructorForm((current) => ({ ...current, name: event.target.value }))}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('emailOptional')}</Form.Label>
-                <Form.Control
-                  type="email"
-                  value={instructorForm.email}
-                  onChange={(event) => setInstructorForm((current) => ({ ...current, email: event.target.value }))}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('specialty')}</Form.Label>
-                <Form.Control
-                  value={instructorForm.specialty}
-                  onChange={(event) => setInstructorForm((current) => ({ ...current, specialty: event.target.value }))}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('bio')}</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={instructorForm.bio}
-                  onChange={(event) => setInstructorForm((current) => ({ ...current, bio: event.target.value }))}
-                />
-              </Form.Group>
-              <Button type="submit" className="w-100 rounded-pill action-button">
-                {adminModalState.mode === 'edit' ? t('saveChanges') : t('saveInstructor')}
-              </Button>
-            </Form>
-          ) : (
-            <Form onSubmit={handleSaveClass}>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('className')}</Form.Label>
-                <Form.Control
-                  value={classForm.name}
-                  onChange={(event) => setClassForm((current) => ({ ...current, name: event.target.value }))}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('selectInstructor')}</Form.Label>
-                <Form.Select
-                  value={classForm.instructorId}
-                  onChange={(event) => setClassForm((current) => ({ ...current, instructorId: event.target.value }))}
-                >
-                  <option value="">{t('selectInstructor')}</option>
-                  {adminInstructors.map((instructor) => (
-                    <option key={instructor.id} value={instructor.id}>
-                      {instructor.name}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-              <Row className="g-2 mb-3">
-                <div className="col">
-                  <Form.Select
-                    value={classForm.level}
-                    onChange={(event) => setClassForm((current) => ({ ...current, level: event.target.value }))}
-                  >
-                    <option value="beginner">{t('beginner')}</option>
-                    <option value="intermediate">{t('intermediate')}</option>
-                    <option value="advanced">{t('advanced')}</option>
-                  </Form.Select>
-                </div>
-                <div className="col">
-                  <Form.Control
-                    type="number"
-                    min={15}
-                    value={classForm.durationMinutes}
-                    onChange={(event) => setClassForm((current) => ({ ...current, durationMinutes: event.target.value }))}
-                  />
-                </div>
-              </Row>
-              <Form.Group className="mb-3">
-                <Form.Label>{t('description')}</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={classForm.description}
-                  onChange={(event) => setClassForm((current) => ({ ...current, description: event.target.value }))}
-                />
-              </Form.Group>
-              <Button type="submit" className="w-100 rounded-pill action-button">
-                {adminModalState.mode === 'edit' ? t('saveChanges') : t('saveClass')}
-              </Button>
-            </Form>
-          )}
-        </Modal.Body>
-      </Modal>
-
-      <Modal show={reservationModalState.open} onHide={closeReservationModal} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {t('createReservation')} · {reservationModalState.classItem?.name || t('className')}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p className="class-meta mb-3">{t('searchUsersHint')}</p>
-          <Form.Group className="mb-3">
-            <Form.Control
-              placeholder={t('searchUsers')}
-              value={reservationModalState.query}
-              onChange={(event) =>
-                setReservationModalState((current) => ({
-                  ...current,
-                  query: event.target.value,
-                  selectedUser: null,
-                }))
-              }
-            />
-          </Form.Group>
-
-          <div className="reservation-search-results mb-3">
-            {reservationModalState.loading ? (
-              <div className="empty-state admin-empty-tight">{t('authProcessing')}</div>
-            ) : reservationModalState.users.length === 0 ? (
-              <div className="empty-state admin-empty-tight">{t('searchUsersEmpty')}</div>
-            ) : (
-              reservationModalState.users.map((userItem) => (
-                <Button
-                  key={userItem.id}
-                  variant={reservationModalState.selectedUser?.id === userItem.id ? 'dark' : 'outline-dark'}
-                  className="reservation-user-item"
-                  onClick={() => setReservationModalState((current) => ({ ...current, selectedUser: userItem }))}
-                >
-                  <span>{userItem.name}</span>
-                  <span className="class-meta">{userItem.email}</span>
-                </Button>
-              ))
-            )}
-          </div>
-
-          <Button
-            className="w-100 rounded-pill action-button"
-            disabled={!reservationModalState.selectedUser}
-            onClick={handleCreateReservationForUser}
-          >
-            {t('createReservation')}
-          </Button>
-        </Modal.Body>
-      </Modal>
+      <AdminModals
+        t={t}
+        adminModalState={adminModalState}
+        closeAdminModal={closeAdminModal}
+        instructorForm={instructorForm}
+        setInstructorForm={setInstructorForm}
+        classForm={classForm}
+        setClassForm={setClassForm}
+        adminInstructors={adminInstructors}
+        handleSaveInstructor={handleSaveInstructor}
+        handleSaveClass={handleSaveClass}
+        reservationModalState={reservationModalState}
+        closeReservationModal={closeReservationModal}
+        setReservationModalState={setReservationModalState}
+        handleCreateReservationForUser={handleCreateReservationForUser}
+      />
 
       <Modal show={showAuthModal} onHide={() => setShowAuthModal(false)} centered>
         <Modal.Header closeButton>

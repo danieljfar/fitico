@@ -1,11 +1,19 @@
 import {
+  countClassesByInstructorId,
   createClass,
   createInstructor,
+  deleteInstructorById,
+  findInstructorById,
   getDashboardMetrics,
+  listClassReservations,
   listClasses,
   listInstructors,
+  updateInstructorById,
 } from '../repositories/adminRepository.js';
+import { deleteCacheKey, getJsonCache, setJsonCache } from '../config/redis.js';
 import { ApiError } from '../utils/apiError.js';
+
+const INSTRUCTORS_CACHE_KEY = 'admin:instructors:list';
 
 function serializeInstructor(instructor) {
   return {
@@ -56,13 +64,48 @@ function serializeClass(classItem) {
   };
 }
 
+function serializeReservation(reservation) {
+  return {
+    id: reservation.id,
+    status: reservation.status,
+    userId: reservation.userId,
+    classId: reservation.classId,
+    externalBookingId: reservation.externalBookingId,
+    createdBy: reservation.createdBy,
+    updatedBy: reservation.updatedBy,
+    createdAt: reservation.createdAt,
+    updatedAt: reservation.updatedAt,
+    user: reservation.user
+      ? {
+          id: reservation.user.id,
+          name: reservation.user.name,
+          email: reservation.user.email,
+          role: reservation.user.role,
+        }
+      : null,
+    class: reservation.class
+      ? serializeClass(reservation.class)
+      : null,
+  };
+}
+
 export async function getAdminDashboard() {
   return getDashboardMetrics();
 }
 
 export async function getInstructors() {
+  const cached = await getJsonCache(INSTRUCTORS_CACHE_KEY);
+
+  if (Array.isArray(cached)) {
+    return cached;
+  }
+
   const instructors = await listInstructors();
-  return instructors.map(serializeInstructor);
+  const serialized = instructors.map(serializeInstructor);
+
+  await setJsonCache(INSTRUCTORS_CACHE_KEY, serialized);
+
+  return serialized;
 }
 
 export async function createInstructorRecord(payload, actorId) {
@@ -82,12 +125,100 @@ export async function createInstructorRecord(payload, actorId) {
     updatedBy: actorId ?? null,
   });
 
+  await deleteCacheKey(INSTRUCTORS_CACHE_KEY);
+
   return serializeInstructor(instructor);
+}
+
+export async function updateInstructorRecord(instructorId, payload, actorId) {
+  const numericInstructorId = Number(instructorId);
+
+  if (!Number.isInteger(numericInstructorId) || numericInstructorId <= 0) {
+    throw new ApiError(400, 'Valid instructorId is required');
+  }
+
+  const updates = {};
+
+  if (typeof payload?.name === 'string') {
+    const trimmed = payload.name.trim();
+    if (!trimmed) {
+      throw new ApiError(400, 'Instructor name cannot be empty');
+    }
+    updates.name = trimmed;
+  }
+
+  if (typeof payload?.email === 'string') {
+    updates.email = payload.email.trim() || null;
+  }
+
+  if (typeof payload?.specialty === 'string') {
+    updates.specialty = payload.specialty.trim() || null;
+  }
+
+  if (typeof payload?.bio === 'string') {
+    updates.bio = payload.bio.trim() || null;
+  }
+
+  if (typeof payload?.status === 'string') {
+    updates.status = payload.status;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new ApiError(400, 'No fields were provided to update');
+  }
+
+  updates.updatedBy = actorId ?? null;
+
+  const instructor = await updateInstructorById(numericInstructorId, updates);
+
+  if (!instructor) {
+    throw new ApiError(404, 'Instructor not found');
+  }
+
+  await deleteCacheKey(INSTRUCTORS_CACHE_KEY);
+
+  return serializeInstructor(instructor);
+}
+
+export async function deleteInstructorRecord(instructorId) {
+  const numericInstructorId = Number(instructorId);
+
+  if (!Number.isInteger(numericInstructorId) || numericInstructorId <= 0) {
+    throw new ApiError(400, 'Valid instructorId is required');
+  }
+
+  const instructor = await findInstructorById(numericInstructorId);
+
+  if (!instructor) {
+    throw new ApiError(404, 'Instructor not found');
+  }
+
+  const classesCount = await countClassesByInstructorId(numericInstructorId);
+
+  if (classesCount > 0) {
+    throw new ApiError(409, 'Cannot delete instructor with associated classes');
+  }
+
+  await deleteInstructorById(numericInstructorId);
+  await deleteCacheKey(INSTRUCTORS_CACHE_KEY);
+
+  return { deleted: true };
 }
 
 export async function getClasses() {
   const classes = await listClasses();
   return classes.map(serializeClass);
+}
+
+export async function getClassReservations(classId) {
+  const numericClassId = Number(classId);
+
+  if (!Number.isInteger(numericClassId) || numericClassId <= 0) {
+    throw new ApiError(400, 'Valid classId is required');
+  }
+
+  const reservations = await listClassReservations(numericClassId);
+  return reservations.map(serializeReservation);
 }
 
 export async function createClassRecord(payload, actorId) {

@@ -16,6 +16,36 @@ export function createInstructor(data) {
   return Instructor.create(data);
 }
 
+export function findInstructorById(id) {
+  return Instructor.findByPk(id);
+}
+
+export async function updateInstructorById(id, data) {
+  const instructor = await Instructor.findByPk(id);
+
+  if (!instructor) {
+    return null;
+  }
+
+  await instructor.update(data);
+  return instructor;
+}
+
+export async function deleteInstructorById(id) {
+  const instructor = await Instructor.findByPk(id);
+
+  if (!instructor) {
+    return false;
+  }
+
+  await instructor.destroy();
+  return true;
+}
+
+export function countClassesByInstructorId(instructorId) {
+  return ClassModel.count({ where: { instructorId } });
+}
+
 export function listClasses() {
   return ClassModel.findAll({
     include: CLASS_INCLUDES,
@@ -25,6 +55,27 @@ export function listClasses() {
 
 export function createClass(data) {
   return ClassModel.create(data);
+}
+
+const RESERVATION_INCLUDES = [
+  {
+    model: User,
+    as: 'user',
+    attributes: ['id', 'name', 'email', 'role'],
+  },
+  {
+    model: ClassModel,
+    as: 'class',
+    include: CLASS_INCLUDES,
+  },
+];
+
+export function listClassReservations(classId) {
+  return Booking.findAll({
+    where: { classId },
+    include: RESERVATION_INCLUDES,
+    order: [['createdAt', 'DESC']],
+  });
 }
 
 export async function getDashboardMetrics() {

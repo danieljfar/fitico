@@ -1,5 +1,5 @@
 import { Badge, Button, Card, Collapse, Stack } from 'react-bootstrap';
-import { FiChevronDown, FiEdit3, FiPlus, FiPlusCircle, FiTrash2, FiUsers } from 'react-icons/fi';
+import { FiChevronDown, FiEdit3, FiPlus, FiPlusCircle, FiTrash2 } from 'react-icons/fi';
 
 function ReservationRow({ t, reservation, onDeleteReservation }) {
   return (
@@ -24,7 +24,6 @@ function ReservationRow({ t, reservation, onDeleteReservation }) {
 export function ClassesManager({
   t,
   classes,
-  classSessions,
   reservationsByClass,
   expandedClassId,
   onCreateClass,
@@ -55,7 +54,6 @@ export function ClassesManager({
             classes.map((classItem) => {
               const isExpanded = expandedClassId === classItem.id;
               const classReservations = reservationsByClass[classItem.id] || [];
-              const scheduleCount = classSessions.filter((session) => session.class?.id === classItem.id).length;
 
               return (
                 <div key={classItem.id} className="admin-list-item admin-class-item">
@@ -65,9 +63,7 @@ export function ClassesManager({
                       <div className="class-meta">
                         {classItem.level} · {classItem.durationMinutes} min
                       </div>
-                      <div className="admin-item-subtitle">
-                        {classItem.instructor?.name || t('selectInstructor')} · {scheduleCount} {t('classSessions')}
-                      </div>
+                      <div className="admin-item-subtitle">{classItem.instructor?.name || t('selectInstructor')}</div>
                     </div>
                     <Badge bg={classItem.status === 'active' ? 'success' : 'secondary'}>{classItem.status}</Badge>
                   </Stack>

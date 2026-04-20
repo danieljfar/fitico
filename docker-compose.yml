@@ -18,6 +18,15 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: fitness-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - fitness-network
+
   backend:
     build: ./backend
     container_name: fitness-backend
@@ -34,6 +43,7 @@ services:
       - PORT=${PORT:-4000}
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5173}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=development
     volumes:
       - ./backend/src:/app/src
@@ -41,6 +51,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - fitness-network
 

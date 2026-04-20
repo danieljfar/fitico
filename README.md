@@ -5,9 +5,9 @@ Prueba técnica de reservas con arquitectura moderna, Node.js v24.x, MySQL y una
 ## Arquitectura
 El repo usa un monolito modular en backend y una SPA ligera en frontend.
 
-* `backend/`: API en Node.js ESM con Express, Sequelize, JWT, Socket.IO y MySQL.
+* `backend/`: API en Node.js ESM con Express, Sequelize, JWT, Socket.IO, Redis y MySQL.
 * `frontend/`: UI en React con Vite para reservar cupos y ver cambios en vivo.
-* `docker-compose.yml`: orquesta MySQL, backend y frontend para levantar la demo local.
+* `docker-compose.yml`: orquesta MySQL, Redis, backend y frontend para levantar la demo local.
 
 ## Librerías destacadas
 Estas son las librerías de la lista que tienen código propio en el proyecto:
@@ -17,6 +17,7 @@ Estas son las librerías de la lista que tienen código propio en el proyecto:
 * `jsonwebtoken`: autenticación JWT.
 * `socket.io`: eventos `slot_updated` en tiempo real.
 * `moment`: formateo de horarios y semillas de demo.
+* `ioredis`: cache de instructores en backend con invalidación por mutaciones.
 * `react`: UI principal.
 * `react-dom`: render del frontend.
 * `socket.io-client`: suscripción a eventos realtime.
@@ -27,6 +28,8 @@ Estas son las librerías de la lista que tienen código propio en el proyecto:
 ## Funcionalidad
 * Registro e inicio de sesión con JWT.
 * Listado de cupos con capacidad y disponibilidad.
+* Cache Redis para `GET /api/admin/instructors`.
+* Invalidación de cache de instructores al crear, actualizar o eliminar instructor.
 * Reserva y cancelación atómica con transacción de base de datos.
 * Bloqueo pesimista para evitar sobreventa.
 * Actualización en tiempo real cuando cambia la ocupación.
@@ -35,6 +38,7 @@ Estas son las librerías de la lista que tienen código propio en el proyecto:
 * Node.js v24.x LTS o v25 current.
 * Docker y Docker Compose.
 * MySQL disponible vía Docker o local.
+* Redis disponible vía Docker o local.
 
 ## Variables de entorno
 Copia los archivos de ejemplo y ajusta valores si es necesario.
